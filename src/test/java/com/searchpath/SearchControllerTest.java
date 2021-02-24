@@ -1,5 +1,6 @@
 package com.searchpath;
 
+import com.searchpath.entities.Message;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
@@ -18,21 +19,27 @@ public class SearchControllerTest {
 
     @Test
     public void testSearch() {
+
         //With no query parameter
         HttpRequest<String> request = HttpRequest.GET("/search");
-        String body = client.toBlocking().retrieve(request);
-        Assertions.assertNotNull(body);
-        Assertions.assertEquals("{\"cluster_name\":\"docker-cluster\"}", body);
+        Message msgRetrieved = client.toBlocking().retrieve(request, Message.class);
+        Assertions.assertNotNull(msgRetrieved);
+        Assertions.assertEquals(null, msgRetrieved.getQuery());
+        Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
+
         //With 1 word query parameter
         request = HttpRequest.GET("/search?query=shoes");
-        body = client.toBlocking().retrieve(request);
-        Assertions.assertNotNull(body);
-        Assertions.assertEquals("{\"query\":\"shoes\",\"cluster_name\":\"docker-cluster\"}", body);
+        msgRetrieved = client.toBlocking().retrieve(request, Message.class);
+        Assertions.assertNotNull(msgRetrieved);
+        Assertions.assertEquals("shoes", msgRetrieved.getQuery());
+        Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
+
         //With several words query parameter
         request = HttpRequest.GET("/search?query=black%20shoes"); //%20 used for concatenating words that are separated by blank spaces
-        body = client.toBlocking().retrieve(request);
-        Assertions.assertNotNull(body);
-        Assertions.assertEquals("{\"query\":\"black shoes\",\"cluster_name\":\"docker-cluster\"}", body);
+        msgRetrieved = client.toBlocking().retrieve(request, Message.class);
+        Assertions.assertNotNull(msgRetrieved);
+        Assertions.assertEquals("black shoes", msgRetrieved.getQuery());
+        Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
     }
 
 }
