@@ -1,4 +1,5 @@
 package com.searchpath.controllers;
+import com.searchpath.SearchingModule;
 import com.searchpath.SingleRestHighLevelClient;
 import com.searchpath.entities.Message;
 import io.micronaut.http.annotation.Controller;
@@ -10,23 +11,22 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 
 @Controller("/search")
 public class SearchController {
 
+    @Inject @Named("Elastic") SearchingModule searchModule;
+
+
     @Get(value = "{?query}")
     public HttpResponse<Message> index(@QueryValue("query") @Nullable String query) {
 
+        return searchModule.processQuery(query);
 
-        RestHighLevelClient client = SingleRestHighLevelClient.getInstance().getClient();
 
-        try {
-            MainResponse response = client.info(RequestOptions.DEFAULT);
-            return HttpResponse.ok( new Message(query, response.getClusterName()) );
-        } catch (IOException e) {
-            return HttpResponse.ok( new Message("", "") );
-        }
     }
 
 
