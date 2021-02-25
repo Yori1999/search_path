@@ -3,7 +3,6 @@ package com.searchpath;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-
 import java.io.IOException;
 
 public class SingleRestHighLevelClient {

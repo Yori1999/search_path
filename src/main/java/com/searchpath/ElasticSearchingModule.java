@@ -5,7 +5,6 @@ import io.micronaut.http.HttpResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
-
 import javax.inject.Singleton;
 import java.io.IOException;
 
@@ -13,9 +12,7 @@ import java.io.IOException;
 public class ElasticSearchingModule implements SearchingModule {
     @Override
     public HttpResponse<Message> processQuery(String query) {
-        //Encapsulate all of this into that additional module
         RestHighLevelClient client = SingleRestHighLevelClient.getInstance().getClient();
-
         try {
             MainResponse response = client.info(RequestOptions.DEFAULT);
             return HttpResponse.ok( new Message(query, response.getClusterName()) ); //try not to use the object creation directly
