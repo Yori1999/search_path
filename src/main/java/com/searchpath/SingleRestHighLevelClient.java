@@ -3,6 +3,8 @@ package com.searchpath;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 
 public class SingleRestHighLevelClient {
@@ -28,9 +30,12 @@ public class SingleRestHighLevelClient {
         return client;
     }
 
+    @PreDestroy
     public void closeClient(){
+        System.out.println("Releasing resources...");
         try {
             client.close();
+            System.out.println("Resources released");
         } catch (IOException e){
         }
     }

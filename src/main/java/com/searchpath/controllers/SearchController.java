@@ -19,7 +19,7 @@ public class SearchController {
     @Get(value = "{?query}")
     public HttpResponse<Message> index(@QueryValue("query") @Nullable String query) {
 
-        return searchModule.processQuery(query);
+        return HttpResponse.ok(searchModule.processQuery(query));
 
 
     }

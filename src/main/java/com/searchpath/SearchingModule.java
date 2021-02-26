@@ -5,6 +5,6 @@ import io.micronaut.http.HttpResponse;
 
 public interface SearchingModule {
 
-    HttpResponse<Message> processQuery(String query);
+    Message processQuery(String query);
 
 }
