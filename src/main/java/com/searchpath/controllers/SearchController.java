@@ -21,7 +21,6 @@ public class SearchController {
 
         return HttpResponse.ok(searchModule.processQuery(query));
 
-
     }
 
 
