@@ -1,9 +1,7 @@
 package com.searchpath;
 
 import com.searchpath.entities.Message;
-import io.micronaut.http.HttpResponse;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
 

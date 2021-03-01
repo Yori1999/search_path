@@ -27,6 +27,13 @@ public class SearchControllerTest {
         Assertions.assertEquals(null, msgRetrieved.getQuery());
         Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
 
+        //With an empty query
+        request = HttpRequest.GET("/search?query=");
+        msgRetrieved = client.toBlocking().retrieve(request, Message.class);
+        Assertions.assertNotNull(msgRetrieved);
+        Assertions.assertEquals(null, msgRetrieved.getQuery());
+        Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
+
         //With 1 word query parameter
         request = HttpRequest.GET("/search?query=shoes");
         msgRetrieved = client.toBlocking().retrieve(request, Message.class);
@@ -41,5 +48,8 @@ public class SearchControllerTest {
         Assertions.assertEquals("black shoes", msgRetrieved.getQuery());
         Assertions.assertEquals("docker-cluster", msgRetrieved.getCluster_name());
     }
+
+
+    //TEST DONDE NO HAYA UN HOST CORRIENDO
 
 }

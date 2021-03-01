@@ -13,7 +13,7 @@ import javax.inject.Named;
 @Controller("/search")
 public class SearchController {
 
-    @Inject @Named("Elastic") SearchingModule searchModule;
+    @Inject @Named("Elastic") SeaarchingModule searchModule;
 
 
     @Get(value = "{?query}")
