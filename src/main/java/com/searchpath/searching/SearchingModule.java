@@ -1,4 +1,4 @@
-package com.searchpath;
+package com.searchpath.searching;
 
 import com.searchpath.entities.Message;
 

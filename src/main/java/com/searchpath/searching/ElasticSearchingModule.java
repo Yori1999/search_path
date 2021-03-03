@@ -1,6 +1,8 @@
-package com.searchpath;
+package com.searchpath.searching;
 
+import com.searchpath.ClientFactory;
 import com.searchpath.entities.Message;
+import com.searchpath.searching.SearchingModule;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
@@ -12,7 +14,8 @@ import java.io.IOException;
 @Singleton
 public class ElasticSearchingModule implements SearchingModule {
 
-    @Inject ClientFactory clientFactory;
+    @Inject
+    ClientFactory clientFactory;
 
     @Override
     public Message processQuery(String query) {

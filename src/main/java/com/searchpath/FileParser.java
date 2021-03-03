@@ -37,7 +37,11 @@ public class FileParser {
                 id = data[0];
                 primaryTitle = data[2];
                 titleType = data[1];
-                start_year = LocalDate.of(Integer.parseInt(data[5]), Month.JANUARY, 1);
+                try {
+                    start_year = LocalDate.of(Integer.parseInt(data[5]), Month.JANUARY, 1);
+                } catch (NumberFormatException e){
+                    start_year = null;
+                }
                 try {
                     end_year = LocalDate.of(Integer.parseInt(data[6]), Month.JANUARY, 1);
                 } catch (NumberFormatException e){
