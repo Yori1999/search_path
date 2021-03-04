@@ -15,8 +15,8 @@ public class Application {
     public static void main(String[] args) {
         Micronaut.run(Application.class, args);
         //System.out.println("Hello");
-        Indexer bulkIndexer = new BulkIndexer();
-        bulkIndexer.index("data.tsv", "\t");
+        //Indexer bulkIndexer = new BulkIndexer();
+        //bulkIndexer.index("data.tsv", "\t");
 
     }
 

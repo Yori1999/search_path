@@ -1,8 +1,10 @@
 package com.searchpath.searching;
 
 import com.searchpath.ClientFactory;
+import com.searchpath.entities.FilmResponse;
 import com.searchpath.entities.Message;
 import com.searchpath.searching.SearchingModule;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
@@ -28,5 +30,8 @@ public class ElasticSearchingModule implements SearchingModule {
             return new Message(query, ""); //Since the way to get here is having issues with the client, not the query
         }
     }
+
+
+
 
 }
