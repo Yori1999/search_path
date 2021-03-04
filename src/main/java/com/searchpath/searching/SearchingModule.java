@@ -11,4 +11,6 @@ public interface SearchingModule {
 
     ImdbResponse processTitleQuery(String query);
 
+    ImdbResponse processTitleAndTypeQuery(String query);
+
 }

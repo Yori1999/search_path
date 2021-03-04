@@ -36,7 +36,9 @@ public class SearchController {
 
         //return HttpResponse.ok(searchModule.processQuery(query));
 
-        return HttpResponse.ok(searchModule.processTitleQuery(query));
+        //return HttpResponse.ok(searchModule.processTitleQuery(query));
+        return HttpResponse.ok(searchModule.processTitleAndTypeQuery(query));
+
     }
 
 

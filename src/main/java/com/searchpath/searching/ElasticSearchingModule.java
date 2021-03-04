@@ -9,6 +9,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -44,7 +45,25 @@ public class ElasticSearchingModule implements SearchingModule {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchQuery("originalTitle", query));
-        //searchSourceBuilder.query(QueryBuilders.multiMatchQuery(query, "originalTitle", "titleType"));
+        searchSourceBuilder.query(QueryBuilders.multiMatchQuery(query, "originalTitle", "titleType"));
+        searchRequest.source(searchSourceBuilder);
+        try {
+            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
+            return parseResponse(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ImdbResponse();
+    }
+
+    @Override
+    public ImdbResponse processTitleAndTypeQuery(String query) {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("imdb");
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.multiMatchQuery(query, "originalTitle", "titleType")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS));
         searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
