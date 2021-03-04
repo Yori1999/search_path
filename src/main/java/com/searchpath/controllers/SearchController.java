@@ -1,6 +1,7 @@
 package com.searchpath.controllers;
 
 import com.searchpath.ClientFactory;
+import com.searchpath.entities.Film;
 import com.searchpath.entities.FilmResponse;
 import com.searchpath.searching.SearchingModule;
 import com.searchpath.entities.Message;
@@ -19,7 +20,9 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Controller("/search")
@@ -31,7 +34,7 @@ public class SearchController {
     ClientFactory clientFactory;
 
     @Get(value = "{?query}")
-    public HttpResponse<Message> index(@QueryValue("query") @Nullable String query) throws IOException {
+    public HttpResponse<FilmResponse> index(@QueryValue("query") @Nullable String query) throws IOException {
 
         //return HttpResponse.ok(searchModule.processQuery(query));
 
@@ -43,19 +46,31 @@ public class SearchController {
         searchRequest.source(searchSourceBuilder);
 
         SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-        System.out.println(response);
-        parseResponse(response);
-        return HttpResponse.ok();
+        return HttpResponse.ok(parseResponse(response));
     }
 
-    private void parseResponse(SearchResponse response) {
+    private FilmResponse parseResponse(SearchResponse response) {
         long total = response.getHits().getTotalHits().value;
+        List<Film> films = new ArrayList<>();
         SearchHit[] searchHits = response.getHits().getHits();
         for (SearchHit hit : searchHits){
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-            String title = (String) sourceAsMap.get("tconst");
-            System.out.println(title);
+            String id = (String) sourceAsMap.get("tconst");
+            String title = (String) sourceAsMap.get("primaryTitle");
+            String[] genres = ((String) sourceAsMap.get("genres")).split(",");
+            String type = (String) sourceAsMap.get("titleType");
+            String start_year = (String) sourceAsMap.get("startYear");
+            String end_year;
+            try {
+                Integer.parseInt( (String)sourceAsMap.get("endYear") );
+                end_year = (String)sourceAsMap.get("endYear");
+            } catch (NumberFormatException e){
+                end_year = "";
+            }
+            films.add(new Film(id, title, genres, type, start_year, end_year));
         }
+        Film[] items = new Film[films.size()];
+        return new FilmResponse(total, films.toArray(items));
     }
 
 

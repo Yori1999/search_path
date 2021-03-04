@@ -1,27 +1,21 @@
 package com.searchpath.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-
-import javax.annotation.Nullable;
-import java.time.LocalDate;
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Film {
 
-    private String id, primaryTitle;
-    private String titleType; //We have an enum just to make sure, but if we're directly parsing...
+    private String id, title, type, start_year, end_year;
     private String[] genres;
-    private LocalDate start_year;
-    @Nullable private LocalDate end_year;
 
     @JsonCreator
-    public Film(String id, String primaryTitle, String titleType,
-                String[] genres, LocalDate start_year, @Nullable LocalDate end_year) {
+    public Film (@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("genres") String[] genres,
+                 @JsonProperty("type") String type, @JsonProperty("start_year") String start_year,
+                 @JsonProperty("end_year") String end_year){
         this.id = id;
-        this.primaryTitle = primaryTitle;
-        this.titleType = titleType;
+        this.title = title;
         this.genres = genres;
+        this.type = type;
         this.start_year = start_year;
         this.end_year = end_year;
     }
@@ -30,24 +24,23 @@ public class Film {
         return id;
     }
 
-    public String getPrimaryTitle() {
-        return primaryTitle;
+    public String getTitle() {
+        return title;
     }
 
-    public String getTitleType() {
-        return titleType;
+    public String getType() {
+        return type;
+    }
+
+    public String getStart_year() {
+        return start_year;
+    }
+
+    public String getEnd_year() {
+        return end_year;
     }
 
     public String[] getGenres() {
         return genres;
-    }
-
-    public LocalDate getStart_year() {
-        return start_year;
-    }
-
-    @Nullable
-    public LocalDate getEnd_year() {
-        return end_year;
     }
 }

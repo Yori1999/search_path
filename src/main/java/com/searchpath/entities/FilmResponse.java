@@ -5,16 +5,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FilmResponse {
 
-    private int total;
+    private long total;
     private Film[] items;
 
     @JsonCreator
-    public FilmResponse(@JsonProperty("total") int total, @JsonProperty("items") Film[] items){
+    public FilmResponse(@JsonProperty("total") long total, @JsonProperty("items") Film[] items){
         this.total = total;
         this.items = items;
     }
 
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
