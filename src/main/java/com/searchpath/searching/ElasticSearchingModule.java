@@ -58,6 +58,9 @@ public class ElasticSearchingModule implements SearchingModule {
 
     @Override
     public ImdbResponse processTitleAndTypeQuery(String query) {
+
+        if (query == null) query = ""; //Protect the multi match query from receiving a null query
+
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("imdb");
 
