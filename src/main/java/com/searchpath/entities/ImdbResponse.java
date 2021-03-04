@@ -14,6 +14,9 @@ public class ImdbResponse {
         this.items = items;
     }
 
+    public ImdbResponse() {
+    }
+
     public long getTotal() {
         return total;
     }
