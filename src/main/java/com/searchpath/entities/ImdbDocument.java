@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import javax.annotation.Nullable;
 
 
-public class FilmDocument {
+public class ImdbDocument {
 
 
     private String tconst, primaryTitle;
@@ -18,7 +18,7 @@ public class FilmDocument {
     private String runtimeMinutes;
 
 
-    public FilmDocument(String tconst, String primaryTitle, String titleType, String originalTitle, String isAdult,
+    public ImdbDocument(String tconst, String primaryTitle, String titleType, String originalTitle, String isAdult,
                         String genres, String startYear, String endYear, String runtimeMinutes) {
         this.tconst = tconst;
         this.primaryTitle = primaryTitle;

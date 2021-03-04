@@ -1,10 +1,7 @@
 package com.searchpath.searching;
 
 import com.searchpath.ClientFactory;
-import com.searchpath.entities.FilmResponse;
 import com.searchpath.entities.Message;
-import com.searchpath.searching.SearchingModule;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
@@ -21,8 +18,7 @@ public class ElasticSearchingModule implements SearchingModule {
 
     @Override
     public Message processQuery(String query) {
-        //RestHighLevelClient client = SingleRestHighLevelClient.getInstance().getClient();
-        RestHighLevelClient client = clientFactory.getClient(); //parameterize???
+        RestHighLevelClient client = clientFactory.getClient();
         try {
             MainResponse response = client.info(RequestOptions.DEFAULT);
             return new Message(query, response.getClusterName());

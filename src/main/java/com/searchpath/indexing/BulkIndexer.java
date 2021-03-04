@@ -2,16 +2,14 @@ package com.searchpath.indexing;
 
 import com.searchpath.ClientFactory;
 import com.searchpath.FileParser;
-import com.searchpath.entities.FilmDocument;
+import com.searchpath.entities.ImdbDocument;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 
-import javax.annotation.Nullable;
 import javax.inject.*;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.*;
 
 @Singleton
@@ -25,7 +23,7 @@ public class BulkIndexer implements Indexer {
     public void index(String filename, String separator) {
         //get all the movies
         FileParser fileParser = new FileParser();
-        List<FilmDocument> filmList = fileParser.parseFilms("src/main/resources/" + filename, separator);
+        List<ImdbDocument> filmList = fileParser.parseFilms("src/main/resources/" + filename, separator);
         int filmListSize = filmList.size();
         ClientFactory clientFactory = new ClientFactory();
         RestHighLevelClient client = clientFactory.getClient();
@@ -34,7 +32,7 @@ public class BulkIndexer implements Indexer {
         int processSize = 10000;
         int counter = 0;
 
-        FilmDocument film; Map<String, Object> jsonMap;
+        ImdbDocument film; Map<String, Object> jsonMap;
 
         BulkRequest bulk = new BulkRequest();
 

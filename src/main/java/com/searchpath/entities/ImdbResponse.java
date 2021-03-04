@@ -3,13 +3,13 @@ package com.searchpath.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FilmResponse {
+public class ImdbResponse {
 
     private long total;
-    private Film[] items;
+    private ImdbObject[] items;
 
     @JsonCreator
-    public FilmResponse(@JsonProperty("total") long total, @JsonProperty("items") Film[] items){
+    public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items){
         this.total = total;
         this.items = items;
     }
@@ -18,7 +18,7 @@ public class FilmResponse {
         return total;
     }
 
-    public Film[] getItems() {
+    public ImdbObject[] getItems() {
         return items;
     }
 }

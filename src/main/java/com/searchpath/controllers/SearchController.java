@@ -1,10 +1,9 @@
 package com.searchpath.controllers;
 
 import com.searchpath.ClientFactory;
-import com.searchpath.entities.Film;
-import com.searchpath.entities.FilmResponse;
+import com.searchpath.entities.ImdbObject;
+import com.searchpath.entities.ImdbResponse;
 import com.searchpath.searching.SearchingModule;
-import com.searchpath.entities.Message;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
@@ -21,7 +20,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +32,7 @@ public class SearchController {
     ClientFactory clientFactory;
 
     @Get(value = "{?query}")
-    public HttpResponse<FilmResponse> index(@QueryValue("query") @Nullable String query) throws IOException {
+    public HttpResponse<ImdbResponse> index(@QueryValue("query") @Nullable String query) throws IOException { //take this out
 
         //return HttpResponse.ok(searchModule.processQuery(query));
 
@@ -43,15 +41,16 @@ public class SearchController {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchQuery("originalTitle", query));
+        //searchSourceBuilder.query(QueryBuilders.multiMatchQuery(query, "originalTitle", "titleType"));
         searchRequest.source(searchSourceBuilder);
 
         SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
         return HttpResponse.ok(parseResponse(response));
     }
 
-    private FilmResponse parseResponse(SearchResponse response) {
+    private ImdbResponse parseResponse(SearchResponse response) {
         long total = response.getHits().getTotalHits().value;
-        List<Film> films = new ArrayList<>();
+        List<ImdbObject> films = new ArrayList<>();
         SearchHit[] searchHits = response.getHits().getHits();
         for (SearchHit hit : searchHits){
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
@@ -67,10 +66,10 @@ public class SearchController {
             } catch (NumberFormatException e){
                 end_year = "";
             }
-            films.add(new Film(id, title, genres, type, start_year, end_year));
+            films.add(new ImdbObject(id, title, genres, type, start_year, end_year));
         }
-        Film[] items = new Film[films.size()];
-        return new FilmResponse(total, films.toArray(items));
+        ImdbObject[] items = new ImdbObject[films.size()];
+        return new ImdbResponse(total, films.toArray(items));
     }
 
 

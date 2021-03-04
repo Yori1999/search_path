@@ -3,15 +3,15 @@ package com.searchpath.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Film {
+public class ImdbObject {
 
     private String id, title, type, start_year, end_year;
     private String[] genres;
 
     @JsonCreator
-    public Film (@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("genres") String[] genres,
-                 @JsonProperty("type") String type, @JsonProperty("start_year") String start_year,
-                 @JsonProperty("end_year") String end_year){
+    public ImdbObject(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("genres") String[] genres,
+                      @JsonProperty("type") String type, @JsonProperty("start_year") String start_year,
+                      @JsonProperty("end_year") String end_year){
         this.id = id;
         this.title = title;
         this.genres = genres;

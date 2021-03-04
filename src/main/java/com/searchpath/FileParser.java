@@ -1,6 +1,6 @@
 package com.searchpath;
 
-import com.searchpath.entities.FilmDocument;
+import com.searchpath.entities.ImdbDocument;
 
 import javax.inject.Singleton;
 import java.io.File;
@@ -13,8 +13,8 @@ import java.util.Scanner;
 public class FileParser {
 
     //FLEXIBLE
-    public List<FilmDocument> parseFilms(String filename, String separator){
-        List<FilmDocument> films = new ArrayList<>();
+    public List<ImdbDocument> parseFilms(String filename, String separator){
+        List<ImdbDocument> films = new ArrayList<>();
 
         try {
             File file = new File(filename);
@@ -25,10 +25,6 @@ public class FileParser {
             String[] data;
 
             String tconst, primaryTitle, originalTitle, isAdult, titleType, startYear, endYear, runtimeMinutes, genres;
-
-            //String[] genres;
-            //LocalDate start_year, end_year;
-            //int start_year, end_year;
 
             reader.nextLine(); //Because we're not interested in the first line
             while (reader.hasNextLine()){
@@ -45,21 +41,7 @@ public class FileParser {
                 runtimeMinutes = data[7];
                 genres = data[8];
 
-
-                //TRY-CATCH FOR (PREVIOUS) LOCALDATE TYPE
-                /*try {
-                    start_year = LocalDate.of(Integer.parseInt(data[5]), Month.JANUARY, 1);
-                } catch (NumberFormatException e){
-                    start_year = null;
-                }
-                try {
-                    end_year = LocalDate.of(Integer.parseInt(data[6]), Month.JANUARY, 1);
-                } catch (NumberFormatException e){
-                    end_year = null;
-                }*/
-                //genres = data[8].split(",");
-
-                films.add( new FilmDocument(tconst, primaryTitle, titleType, originalTitle, isAdult, genres,
+                films.add( new ImdbDocument(tconst, primaryTitle, titleType, originalTitle, isAdult, genres,
                         startYear, endYear, runtimeMinutes) );
             }
             reader.close();
