@@ -45,7 +45,6 @@ public class ElasticSearchingModule implements SearchingModule {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchQuery("originalTitle", query));
-        searchSourceBuilder.query(QueryBuilders.multiMatchQuery(query, "originalTitle", "titleType"));
         searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Singleton
-public class BulkIndexer implements Indexer {
+public class ImdbBulkIndexer implements Indexer {
 
     //@Inject FileParser fileParser;
 

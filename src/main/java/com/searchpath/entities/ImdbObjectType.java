@@ -1,6 +1,6 @@
 package com.searchpath.entities;
 
-public enum MovieType {
+public enum ImdbObjectType {
 
     MOVIE, SHORT, TVSERIES, TVEPISODE, VIDEO
 

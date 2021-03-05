@@ -1,12 +1,6 @@
 package com.searchpath.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
-import javax.annotation.Nullable;
-
-
 public class ImdbDocument {
-
 
     private String tconst, primaryTitle;
     private String titleType; //We have an enum just to make sure, but if we're directly parsing...
@@ -16,7 +10,6 @@ public class ImdbDocument {
     private String originalTitle;
     private String isAdult;
     private String runtimeMinutes;
-
 
     public ImdbDocument(String tconst, String primaryTitle, String titleType, String originalTitle, String isAdult,
                         String genres, String startYear, String endYear, String runtimeMinutes) {
