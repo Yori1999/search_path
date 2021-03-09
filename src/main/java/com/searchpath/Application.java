@@ -9,8 +9,8 @@ public class Application {
     public static void main(String[] args) {
         Micronaut.run(Application.class, args);
 
-        /*Indexer bulkIndexer = new ImdbBulkIndexer();
-        bulkIndexer.index("data.tsv", "\t");*/
+        Indexer bulkIndexer = new ImdbBulkIndexer();
+        bulkIndexer.index("data.tsv", "\t");
 
     }
 
