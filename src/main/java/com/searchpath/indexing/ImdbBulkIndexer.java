@@ -1,5 +1,6 @@
 package com.searchpath.indexing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.searchpath.ClientFactory;
 import com.searchpath.FileParser;
 import com.searchpath.entities.ImdbDocument;
@@ -12,6 +13,8 @@ import org.elasticsearch.common.xcontent.XContentType;
 
 import javax.inject.*;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.*;
 
 @Singleton
@@ -70,7 +73,8 @@ public class ImdbBulkIndexer implements Indexer {
         System.out.println("FINISHED INDEXING PROCESS");
     }
 
-    private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
+   /*
+   private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
                                             String isAdult, String startYear, String endYear, String runtimeMinutes,
                                             String genres){
         Map<String, Object> jsonMap = new HashMap<>();
@@ -85,12 +89,34 @@ public class ImdbBulkIndexer implements Indexer {
         jsonMap.put("genres", genres);
         return jsonMap;
     }
+    */
+
+    private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
+                                            String isAdult, String startYear, String endYear, String runtimeMinutes,
+                                            String genres){
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("tconst", tconst);
+        jsonMap.put("titleType", titleType);
+        jsonMap.put("primaryTitle", primaryTitle);
+        jsonMap.put("originalTitle", originalTitle);
+        jsonMap.put("runtimeMinutes", runtimeMinutes);
+        jsonMap.put("genres", genres);
+        return jsonMap;
+    }
 
     private void createIndex(RestHighLevelClient client) throws IOException {
         CreateIndexRequest create = new CreateIndexRequest("imdb");
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        create.mapping("{}", XContentType.JSON);
-        create.settings("{}", XContentType.JSON);
+        Map<String, Object> mappingMap = objectMapper.readValue(
+                this.getClass().getClassLoader().getResourceAsStream("mappingImdbIndexPrueba.json")
+                , Map.class);
+        Map<String, Object> settingsMap = objectMapper.readValue(
+                this.getClass().getClassLoader().getResourceAsStream("settingsImdbIndex.json")
+                , Map.class);
+
+        create.settings(settingsMap);
+        create.mapping(mappingMap);
 
         client.indices().create(create, RequestOptions.DEFAULT);
     }
