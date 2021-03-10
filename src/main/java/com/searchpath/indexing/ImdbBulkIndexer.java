@@ -73,7 +73,7 @@ public class ImdbBulkIndexer implements Indexer {
         System.out.println("FINISHED INDEXING PROCESS");
     }
 
-   /*
+
    private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
                                             String isAdult, String startYear, String endYear, String runtimeMinutes,
                                             String genres){
@@ -89,9 +89,9 @@ public class ImdbBulkIndexer implements Indexer {
         jsonMap.put("genres", genres);
         return jsonMap;
     }
-    */
 
-    private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
+
+    /*private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
                                             String isAdult, String startYear, String endYear, String runtimeMinutes,
                                             String genres){
         Map<String, Object> jsonMap = new HashMap<>();
@@ -99,10 +99,26 @@ public class ImdbBulkIndexer implements Indexer {
         jsonMap.put("titleType", titleType);
         jsonMap.put("primaryTitle", primaryTitle);
         jsonMap.put("originalTitle", originalTitle);
+        jsonMap.put("isAdult", isAdult);
+
+        try {
+            jsonMap.put("startYear", LocalDate.of( Integer.parseInt(startYear), Month.JANUARY, 1) );
+        } catch (NumberFormatException e){
+            jsonMap.put("startYear", null);
+        }
+
+        try {
+            jsonMap.put("endYear", LocalDate.of( Integer.parseInt(endYear), Month.JANUARY, 1) );
+        } catch (NumberFormatException e){
+            jsonMap.put("endYear", null);
+        }
+
         jsonMap.put("runtimeMinutes", runtimeMinutes);
+
+
         jsonMap.put("genres", genres);
         return jsonMap;
-    }
+    }*/
 
     private void createIndex(RestHighLevelClient client) throws IOException {
         CreateIndexRequest create = new CreateIndexRequest("imdb");
