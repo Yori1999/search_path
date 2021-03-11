@@ -6,14 +6,38 @@
       "title_search_analyzer" :
       {
         "type" : "custom",
-        "tokenizer" : "standard",
-        "filter" : ["lowercase", "asciifolding"]
+        "tokenizer" : "whitespace",
+        "filter" : ["lowercase", "asciifolding", "synonym"]
       },
       "title_analyzer" :
       {
         "type" : "custom",
-        "tokenizer" : "standard",
-        "filter" : ["lowercase", "asciifolding"]
+        "tokenizer" : "whitespace",
+        "filter" : ["lowercase", "asciifolding", "synonym"]
+      }
+    },
+    "filter" :
+    {
+      "word_delimiter" :
+      {
+        "type" : "word_delimiter",
+        "preserve_original" : true
+      },
+      "synonym" :
+      {
+        "type" : "synonym",
+        "synonyms" : [
+          "i, I, 1",
+          "ii, II, 2",
+          "iii, III, 3",
+          "iv, IV, 4",
+          "v, V, 5",
+          "vi, VI, 6",
+          "vii, VII, 7",
+          "viii, VIII, 8",
+          "ix, IX, 9",
+          "x, X, 10"
+        ]
       }
     }
   }
