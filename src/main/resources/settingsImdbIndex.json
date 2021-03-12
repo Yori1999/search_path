@@ -27,7 +27,8 @@
       "word_delimiter" :
       {
         "type" : "word_delimiter",
-        "preserve_original" : true
+        "preserve_original" : true,
+        "catenate_words" : true
       },
       "synonym" :
       {
