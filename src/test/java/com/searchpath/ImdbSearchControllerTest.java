@@ -21,7 +21,6 @@ public class ImdbSearchControllerTest {
     RxHttpClient client;
 
 
-
     @Test
     public void testSearch() {
         //With no query parameter
@@ -63,11 +62,6 @@ public class ImdbSearchControllerTest {
         Assertions.assertNotEquals(null, imdbResponse.getItems());
         Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
         Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
-    }
-
-    @Test
-    public void testTitleAnalyzer() {
-
     }
 
 
