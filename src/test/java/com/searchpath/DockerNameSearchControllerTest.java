@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 
 @MicronautTest
-public class SearchControllerTest {
+public class DockerNameSearchControllerTest {
 
     @Inject
     @Client("/")

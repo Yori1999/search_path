@@ -1,6 +1,5 @@
 package com.searchpath.controllers;
 
-import com.searchpath.ClientFactory;
 import com.searchpath.searching.SearchingModule;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -16,10 +15,16 @@ public class SearchController {
 
     @Inject @Named("Elastic") SearchingModule searchModule;
 
-    @Inject
-    ClientFactory clientFactory;
+    @Get(value = "{?query,genre,type,year}")
+    public HttpResponse index(@QueryValue("query") @Nullable String query, @QueryValue("genre") @Nullable String genre,
+                              @QueryValue("type") @Nullable String type, @QueryValue("year") @Nullable String year)
+            throws IOException {
 
-    @Get(value = "{?query}")
+        return HttpResponse.ok(searchModule.processQuery(query, genre, type, year));
+
+    }
+
+   /* @Get(value = "{?query}")
     public HttpResponse index(@QueryValue("query") @Nullable String query) throws IOException {
 
         //return HttpResponse.ok(searchModule.processQuery(query));
@@ -27,7 +32,7 @@ public class SearchController {
         //return HttpResponse.ok(searchModule.processTitleQuery(query)); //this for searching over the title field
         return HttpResponse.ok(searchModule.processTitleAndTypeQuery(query));
 
-    }
+    }*/
 
 
 

@@ -28,23 +28,28 @@ public class ElasticSearchingModule implements SearchingModule {
     ClientFactory clientFactory;
 
     @Override
-    public Message processQuery(String query) {
-        RestHighLevelClient client = clientFactory.getClient();
-        try {
-            MainResponse response = client.info(RequestOptions.DEFAULT);
-            return new Message(query, response.getClusterName());
-        } catch (IOException e) {
-            return new Message(query, ""); //Since the way to get here is having issues with the client, not the query
-        }
-    }
+    public ImdbResponse processQuery(String query, String genre, String type, String year) {
+        if (query == null) query = ""; //Protect the multi match query from receiving a null query
+        if (genre == null) genre = "";
+        if (type == null) type = "";
+        if (year == null) year = "";
 
-    @Override
-    public ImdbResponse processTitleQuery(String query) {
+        String[] genres = genre.replace(" ", "").split(",");
+        String types = type.replace(" ", "").replace(",", " ");
+        //String[] types = type.replace(" ", "").split(",");
+
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("imdb");
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(QueryBuilders.matchQuery("originalTitle", query));
+
+
+        searchSourceBuilder.query(QueryBuilders.boolQuery()
+                                    .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
+                                    .must(QueryBuilders.matchQuery("titleType", types))
+        );
+
+
         searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
@@ -75,6 +80,36 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         return new ImdbResponse();
     }
+
+    @Override
+    public ImdbResponse processTitleQuery(String query) {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("imdb");
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("originalTitle", query));
+        searchRequest.source(searchSourceBuilder);
+        try {
+            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
+            return parseResponse(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ImdbResponse();
+    }
+
+
+    @Override
+    public Message processQuery(String query) {
+        RestHighLevelClient client = clientFactory.getClient();
+        try {
+            MainResponse response = client.info(RequestOptions.DEFAULT);
+            return new Message(query, response.getClusterName());
+        } catch (IOException e) {
+            return new Message(query, ""); //Since the way to get here is having issues with the client, not the query
+        }
+    }
+
 
     private ImdbResponse parseResponse(SearchResponse response) {
         long total = response.getHits().getTotalHits().value;

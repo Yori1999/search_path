@@ -13,4 +13,6 @@ public interface SearchingModule {
 
     ImdbResponse processTitleAndTypeQuery(String query);
 
+    ImdbResponse processQuery(String query, String genre, String type, String year);
+
 }

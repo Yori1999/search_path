@@ -8,6 +8,7 @@ public class ImdbResponse {
     private long total;
     private ImdbObject[] items;
 
+
     @JsonCreator
     public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items){
         this.total = total;
