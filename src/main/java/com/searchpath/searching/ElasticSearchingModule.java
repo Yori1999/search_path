@@ -34,9 +34,8 @@ public class ElasticSearchingModule implements SearchingModule {
         if (type == null) type = "";
         if (year == null) year = "";
 
-        String[] genres = genre.replace(" ", "").split(",");
+        String genres = genre.replace(" ", "").replace(",", " ");
         String types = type.replace(" ", "").replace(",", " ");
-        //String[] types = type.replace(" ", "").split(",");
 
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices("imdb");
@@ -47,6 +46,7 @@ public class ElasticSearchingModule implements SearchingModule {
         searchSourceBuilder.query(QueryBuilders.boolQuery()
                                     .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
                                     .must(QueryBuilders.matchQuery("titleType", types))
+                                    .must(QueryBuilders.matchQuery("genres", genres))
         );
 
 
