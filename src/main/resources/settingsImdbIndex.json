@@ -25,13 +25,13 @@
       {
         "type" : "custom",
         "tokenizer" : "comma_tokenizer",
-        "filter" : ["lowercase", "asciifolding", "genres_word_delimiter"]
+        "filter" : ["lowercase", "asciifolding"]
       },
       "genres_search_analyzer" :
       {
         "type" : "custom",
         "tokenizer" : "comma_tokenizer",
-        "filter" : ["lowercase", "asciifolding", "genres_word_delimiter"]
+        "filter" : ["lowercase", "asciifolding"]
       }
     },
     "tokenizer":

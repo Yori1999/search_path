@@ -15,6 +15,7 @@ public class ImdbResponse {
         this.items = items;
     }
 
+
     public ImdbResponse() {
     }
 

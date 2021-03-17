@@ -8,6 +8,7 @@
     "titleType":
     {
       "type" : "text",
+      "fielddata" : true,
       "fields" :
       {
         "keyword" :
@@ -49,6 +50,7 @@
     "genres":
     {
       "type" : "text",
+      "fielddata" : true,
       "fields" :
       {
         "keyword" :

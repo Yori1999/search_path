@@ -58,8 +58,8 @@ public class ElasticSearchingModule implements SearchingModule {
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery).subAggregation(
                 AggregationBuilders
-                        .terms("types")
-                        .field("titleType.keyword")
+                        .terms("genres")
+                        .field("genres")
         );
 
         searchSourceBuilder.query(completeQuery).aggregation(aggregations);
@@ -72,7 +72,7 @@ public class ElasticSearchingModule implements SearchingModule {
             System.out.println(response);
             Filter agg = response.getAggregations().get("agg");
             System.out.println(agg.getName());
-            //System.out.println(agg.getAggregations().get("types").getMetadata());
+           // System.out.println(agg.getAggregations().get("types"));
             return new ImdbResponse();
 
         } catch (IOException e) {
