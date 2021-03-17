@@ -56,11 +56,9 @@ public class ElasticSearchingModule implements SearchingModule {
                 .must(QueryBuilders.matchQuery("genres", genres));
 
         //BUILD AGGREGATES
-        AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery).subAggregation(
-                AggregationBuilders
-                        .terms("genres")
-                        .field("genres")
-        );
+        AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
+        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
+        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
 
         searchSourceBuilder.query(completeQuery).aggregation(aggregations);
 
