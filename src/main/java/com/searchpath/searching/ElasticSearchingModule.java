@@ -9,9 +9,17 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.filter.Filters;
+import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import javax.inject.Inject;
@@ -42,18 +50,31 @@ public class ElasticSearchingModule implements SearchingModule {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
+        BoolQueryBuilder completeQuery = QueryBuilders.boolQuery()
+                .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
+                .must(QueryBuilders.matchQuery("titleType", types))
+                .must(QueryBuilders.matchQuery("genres", genres));
 
-        searchSourceBuilder.query(QueryBuilders.boolQuery()
-                                    .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
-                                    .must(QueryBuilders.matchQuery("titleType", types))
-                                    .must(QueryBuilders.matchQuery("genres", genres))
+        //BUILD AGGREGATES
+        AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery).subAggregation(
+                AggregationBuilders
+                        .terms("types")
+                        .field("titleType.keyword")
         );
+
+        searchSourceBuilder.query(completeQuery).aggregation(aggregations);
 
 
         searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-            return parseResponse(response);
+            //return parseResponse(response);
+            System.out.println(response);
+            Filter agg = response.getAggregations().get("agg");
+            System.out.println(agg.getName());
+            //System.out.println(agg.getAggregations().get("types").getMetadata());
+            return new ImdbResponse();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

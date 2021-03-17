@@ -8,6 +8,13 @@
     "titleType":
     {
       "type" : "text",
+      "fields" :
+      {
+        "keyword" :
+        {
+          "type" : "keyword"
+        }
+      },
       "search_analyzer": "title_search_analyzer",
       "analyzer": "title_analyzer"
     },
@@ -42,8 +49,15 @@
     "genres":
     {
       "type" : "text",
-      "search_analyzer" : "title_search_analyzer",
-      "analyzer" : "title_analyzer"
+      "fields" :
+      {
+        "keyword" :
+        {
+          "type" : "keyword"
+        }
+      },
+      "search_analyzer" : "genres_search_analyzer",
+      "analyzer" : "genres_analyzer"
     }
   }
 }

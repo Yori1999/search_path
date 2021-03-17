@@ -20,6 +20,26 @@
         "type" : "custom",
         "tokenizer" : "whitespace",
         "filter" : ["word_delimiter", "lowercase", "asciifolding"]
+      },
+      "genres_analyzer" :
+      {
+        "type" : "custom",
+        "tokenizer" : "comma_tokenizer",
+        "filter" : ["lowercase", "asciifolding", "genres_word_delimiter"]
+      },
+      "genres_search_analyzer" :
+      {
+        "type" : "custom",
+        "tokenizer" : "comma_tokenizer",
+        "filter" : ["lowercase", "asciifolding", "genres_word_delimiter"]
+      }
+    },
+    "tokenizer":
+    {
+      "comma_tokenizer" :
+      {
+        "type" : "simple_pattern_split",
+        "pattern" : ","
       }
     },
     "filter" :
@@ -29,6 +49,11 @@
         "type" : "word_delimiter",
         "preserve_original" : true,
         "catenate_words" : true
+      },
+      "genres_word_delimiter":
+      {
+        "type" : "word_delimiter",
+        "preserve_original" : false
       },
       "synonym" :
       {
