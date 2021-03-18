@@ -87,7 +87,7 @@ public class ElasticSearchingModule implements SearchingModule {
         if (type == null) type = "";
         if (year == null) year = "";
 
-        String genres = genre.replace(" ", "").replace(",", " ");
+        String[] genres = genre.replace(" ", "").split(",");
         String types = type.replace(" ", "").replace(",", " ");
 
         SearchRequest searchRequest = new SearchRequest();
@@ -98,7 +98,7 @@ public class ElasticSearchingModule implements SearchingModule {
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery()
                 .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
                 .must(QueryBuilders.matchQuery("titleType", types))
-                .must(QueryBuilders.matchQuery("genres", genres));
+                .must(QueryBuilders.termsQuery("genres", genres));
 
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
