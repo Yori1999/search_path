@@ -16,9 +16,12 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.filter.Filters;
 import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -26,6 +29,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +38,53 @@ public class ElasticSearchingModule implements SearchingModule {
 
     @Inject
     ClientFactory clientFactory;
+
+    private ImdbResponse parseResponseWithAggregations(SearchResponse response) {
+        long total = response.getHits().getTotalHits().value;
+        List<ImdbObject> films = new ArrayList<>();
+        SearchHit[] searchHits = response.getHits().getHits();
+        for (SearchHit hit : searchHits){
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            String id = (String) sourceAsMap.get("tconst");
+            String title = (String) sourceAsMap.get("primaryTitle");
+            String[] genres = ((String) sourceAsMap.get("genres")).split(",");
+            String type = (String) sourceAsMap.get("titleType");
+            String start_year;
+            try {
+                Integer.parseInt( (String) sourceAsMap.get("startYear") );
+                start_year = (String) sourceAsMap.get("startYear");
+            } catch (NumberFormatException e){
+                start_year = "";
+            }
+            String end_year;
+            try {
+                Integer.parseInt( (String)sourceAsMap.get("endYear") );
+                end_year = (String)sourceAsMap.get("endYear");
+            } catch (NumberFormatException e){
+                end_year = "";
+            }
+            films.add(new ImdbObject(id, title, genres, type, start_year, end_year));
+        }
+        ImdbObject[] items = new ImdbObject[films.size()];
+        return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));
+    }
+
+    private Map<String, Map<String, Long>> mapAggregations(ParsedFilter agg) {
+        Map<String, Map<String, Long>> aggregations = new HashMap<>();
+        Terms typesBuckets = agg.getAggregations().get("types");
+        Map<String, Long> types = new HashMap<>();
+        for (Terms.Bucket bucket : typesBuckets.getBuckets()) {
+            types.put(bucket.getKey().toString(), bucket.getDocCount());
+        }
+        Terms genresBuckets = agg.getAggregations().get("genres");
+        Map<String, Long> genres = new HashMap<>();
+        for (Terms.Bucket bucket : genresBuckets.getBuckets()) {
+            genres.put(bucket.getKey().toString(), bucket.getDocCount());
+        }
+        aggregations.put("types", types);
+        aggregations.put("genres", genres);
+        return aggregations;
+    }
 
     @Override
     public ImdbResponse processQuery(String query, String genre, String type, String year) {
@@ -66,12 +117,7 @@ public class ElasticSearchingModule implements SearchingModule {
         searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-            //return parseResponse(response);
-            System.out.println(response);
-            Filter agg = response.getAggregations().get("agg");
-            System.out.println(agg.getName());
-           // System.out.println(agg.getAggregations().get("types"));
-            return new ImdbResponse();
+            return parseResponseWithAggregations(response);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -140,7 +186,13 @@ public class ElasticSearchingModule implements SearchingModule {
             String title = (String) sourceAsMap.get("primaryTitle");
             String[] genres = ((String) sourceAsMap.get("genres")).split(",");
             String type = (String) sourceAsMap.get("titleType");
-            String start_year = (String) sourceAsMap.get("startYear");
+            String start_year;
+            try {
+                Integer.parseInt( (String) sourceAsMap.get("startYear") );
+                start_year = (String) sourceAsMap.get("startYear");
+            } catch (NumberFormatException e){
+                start_year = "";
+            }
             String end_year;
             try {
                 Integer.parseInt( (String)sourceAsMap.get("endYear") );
