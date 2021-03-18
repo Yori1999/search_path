@@ -6,7 +6,6 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 
-import javax.annotation.PreDestroy;
 import javax.inject.Singleton;
 
 @Factory
