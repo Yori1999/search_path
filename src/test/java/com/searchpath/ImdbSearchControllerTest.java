@@ -1,8 +1,6 @@
 package com.searchpath;
 
-import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
-import com.searchpath.entities.Message;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
@@ -11,7 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.util.Arrays;
+import java.util.Map;
 
 @MicronautTest
 public class ImdbSearchControllerTest {
@@ -58,13 +56,11 @@ public class ImdbSearchControllerTest {
         request = HttpRequest.GET("/search?query=Avengers%20movie");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
-        Assertions.assertNotEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
+        Assertions.assertNotEquals(0, imdbResponse.getTotal());
         Assertions.assertNotEquals(null, imdbResponse.getItems());
         Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
         Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
     }
-
-
 
 
 }

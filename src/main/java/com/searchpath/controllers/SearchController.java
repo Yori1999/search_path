@@ -17,8 +17,7 @@ public class SearchController {
 
     @Get(value = "{?query,genre,type,year}")
     public HttpResponse index(@QueryValue("query") @Nullable String query, @QueryValue("genre") @Nullable String genre,
-                              @QueryValue("type") @Nullable String type, @QueryValue("year") @Nullable String year)
-            throws IOException {
+                              @QueryValue("type") @Nullable String type, @QueryValue("year") @Nullable String year) {
 
         return HttpResponse.ok(searchModule.processQuery(query, genre, type, year));
 

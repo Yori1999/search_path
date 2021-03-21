@@ -22,11 +22,11 @@ public class ImdbResponse {
         this.aggregations = aggregations;
     }
 
-    @JsonCreator
+    /*@JsonCreator
     public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items){
         this.total = total;
         this.items = items;
-    }
+    }*/
 
 
     public ImdbResponse() {
