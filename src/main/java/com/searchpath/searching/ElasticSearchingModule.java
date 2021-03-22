@@ -18,6 +18,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -53,8 +54,9 @@ public class ElasticSearchingModule implements SearchingModule {
             String types = type.replace(" ", "").replace(",", " ");
             completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
         }
+        DateRangeAggregationBuilder rangeAggregates = null;
         if (year != null){
-            RangeAggregationBuilder rangeAggregates = AggregationBuilders.range("dates");
+            rangeAggregates = AggregationBuilders.dateRange("dates").field("startYear").format("yyyy");
             String[] yearRanges = year.replace(" ", "").split(","); //array of the different ranges
             BoolQueryBuilder datesQuery = QueryBuilders.boolQuery();
             RangeQueryBuilder rangeDates = null;
@@ -66,6 +68,10 @@ public class ElasticSearchingModule implements SearchingModule {
                 rangeDates.gte(yearFrom);
                 rangeDates.lte(yearTo);
                 datesQuery.should(rangeDates);
+
+                for (int j = yearFrom; j < yearTo; j += 10){
+                    rangeAggregates.addRange(j + "-" + (j+10), j, j+10);
+                }
             }
             completeQuery.filter(datesQuery);
         }
@@ -73,6 +79,7 @@ public class ElasticSearchingModule implements SearchingModule {
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
         aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
         aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
+        aggregations.subAggregation(rangeAggregates);
         searchSourceBuilder.query(completeQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
 
@@ -249,8 +256,15 @@ public class ElasticSearchingModule implements SearchingModule {
         for (Terms.Bucket bucket : genresBuckets.getBuckets()) {
             genres.put(bucket.getKey().toString(), bucket.getDocCount());
         }
+        Range rangesBuckets = agg.getAggregations().get("dates");
+        Map<String, Long> dates = new HashMap<>();
+        for (Range.Bucket bucket : rangesBuckets.getBuckets()){
+            System.out.println(bucket.getKey());
+            dates.put(bucket.getKey().toString(), bucket.getDocCount());
+        }
         aggregations.put("types", types);
         aggregations.put("genres", genres);
+        aggregations.put("dates", dates);
         return aggregations;
     }
 
