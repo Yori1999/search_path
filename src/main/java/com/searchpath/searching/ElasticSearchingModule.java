@@ -79,7 +79,7 @@ public class ElasticSearchingModule implements SearchingModule {
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
         aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
         aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
-        aggregations.subAggregation(rangeAggregates);
+        if (rangeAggregates!=null) aggregations.subAggregation(rangeAggregates);
         searchSourceBuilder.query(completeQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
 
@@ -251,20 +251,22 @@ public class ElasticSearchingModule implements SearchingModule {
         for (Terms.Bucket bucket : typesBuckets.getBuckets()) {
             types.put(bucket.getKey().toString(), bucket.getDocCount());
         }
+        aggregations.put("types", types);
         Terms genresBuckets = agg.getAggregations().get("genres");
         Map<String, Long> genres = new HashMap<>();
         for (Terms.Bucket bucket : genresBuckets.getBuckets()) {
             genres.put(bucket.getKey().toString(), bucket.getDocCount());
         }
-        Range rangesBuckets = agg.getAggregations().get("dates");
-        Map<String, Long> dates = new HashMap<>();
-        for (Range.Bucket bucket : rangesBuckets.getBuckets()){
-            System.out.println(bucket.getKey());
-            dates.put(bucket.getKey().toString(), bucket.getDocCount());
-        }
-        aggregations.put("types", types);
         aggregations.put("genres", genres);
-        aggregations.put("dates", dates);
+        Range rangesBuckets = agg.getAggregations().get("dates");
+        if (rangesBuckets!=null){
+            Map<String, Long> dates = new HashMap<>();
+            for (Range.Bucket bucket : rangesBuckets.getBuckets()){
+                System.out.println(bucket.getKey());
+                dates.put(bucket.getKey().toString(), bucket.getDocCount());
+            }
+            aggregations.put("dates", dates);
+        }
         return aggregations;
     }
 
