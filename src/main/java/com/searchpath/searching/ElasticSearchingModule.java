@@ -69,8 +69,15 @@ public class ElasticSearchingModule implements SearchingModule {
                 rangeDates.lte(yearTo);
                 datesQuery.should(rangeDates);
 
+                boolean firstDecade = true;
                 for (int j = yearFrom; j < yearTo; j += 10){
-                    rangeAggregates.addRange(j + "-" + (j+10), j, j+10);
+                    if (!firstDecade){
+                        rangeAggregates.addRange(j + "-" + (j+9), j, j+10);
+                    } else {
+                        rangeAggregates.addRange(j + "-" + (j + 10), j, j + 11);
+                        j++;
+                        firstDecade = false;
+                    }
                 }
             }
             completeQuery.filter(datesQuery);
