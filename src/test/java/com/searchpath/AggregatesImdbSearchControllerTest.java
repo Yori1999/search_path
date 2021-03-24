@@ -19,6 +19,7 @@ public class AggregatesImdbSearchControllerTest {
     @Client("/")
     RxHttpClient client;
 
+    // Collection of tests for mainly checking the aggregations //
 
     @Test
     public void testAggregationsSearchRangeDates() {
@@ -30,10 +31,10 @@ public class AggregatesImdbSearchControllerTest {
         Assertions.assertNotNull(imdbResponse.getAggregations());
         Map<String, Map<String,Long>> map = imdbResponse.getAggregations();
         Assertions.assertTrue(map.containsKey("dates"));
-        Assertions.assertTrue(map.get("dates").size() != 0);
+        Assertions.assertTrue(map.get("dates").size() == 2);
         Map<String, Long> dates = map.get("dates");
         Assertions.assertEquals(1, dates.get("1980-1990"));
-        Assertions.assertEquals(0, dates.get("1990-2000"));
+        Assertions.assertEquals(0, dates.get("1991-2000"));
 
         request = HttpRequest.GET("/search?query=Tron&type=movie&year=1980/2020");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
@@ -43,12 +44,12 @@ public class AggregatesImdbSearchControllerTest {
         Assertions.assertNotNull(imdbResponse.getAggregations());
         map = imdbResponse.getAggregations();
         Assertions.assertTrue(map.containsKey("dates"));
-        Assertions.assertTrue(map.get("dates").size() != 0);
+        Assertions.assertTrue(map.get("dates").size() == 4);
         dates = map.get("dates");
         Assertions.assertEquals(1, dates.get("1980-1990"));
-        Assertions.assertEquals(0, dates.get("1990-2000"));
-        Assertions.assertEquals(0, dates.get("2000-2010"));
-        Assertions.assertEquals(2, dates.get("2010-2020"));
+        Assertions.assertEquals(0, dates.get("1991-2000"));
+        Assertions.assertEquals(1, dates.get("2001-2010"));
+        Assertions.assertEquals(1, dates.get("2011-2020"));
     }
 
 

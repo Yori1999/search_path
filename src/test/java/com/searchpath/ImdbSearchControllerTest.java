@@ -18,6 +18,7 @@ public class ImdbSearchControllerTest {
     @Client("/")
     RxHttpClient client;
 
+    //Collection of tests for checking the returned items when searching
 
     @Test
     public void testSearch() {
@@ -25,8 +26,8 @@ public class ImdbSearchControllerTest {
         HttpRequest<String> request = HttpRequest.GET("/search");
         ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
-        Assertions.assertEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
-        Assertions.assertEquals(null, imdbResponse.getItems());
+        Assertions.assertTrue(imdbResponse.getTotal() > 0); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
+        Assertions.assertTrue(imdbResponse.getItems() != null);
 
         //With empty query parameter
         request = HttpRequest.GET("/search?query=");
@@ -53,7 +54,7 @@ public class ImdbSearchControllerTest {
         Assertions.assertNotEquals("movie", imdbResponse.getItems()[0].getType()); //if we search by title
 
         //With query parameter indicating a certain movie and specifying we want a movie
-        request = HttpRequest.GET("/search?query=Avengers%20movie");
+        request = HttpRequest.GET("/search?query=Avengers&type=movie");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
         Assertions.assertNotEquals(0, imdbResponse.getTotal());
@@ -61,6 +62,8 @@ public class ImdbSearchControllerTest {
         Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
         Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
     }
+
+    //Test searc
 
 
 }
