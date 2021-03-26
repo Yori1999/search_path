@@ -9,7 +9,7 @@ public class Application {
 
     public static void main(String[] args) {
         Micronaut.run(Application.class, args);
-        try { //Is this a dirty solution?
+        try { //I think this is dirty as hell but I was trying to move fast and fix this later
             Indexer bulkIndexer = new ImdbBulkIndexer();
             bulkIndexer.index("data.tsv", "\t"); //Also, this may be dirty. Externalize this
         } catch (ElasticsearchStatusException e){

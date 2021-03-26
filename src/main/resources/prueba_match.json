@@ -1,0 +1,77 @@
+{
+    "query" : 
+    {
+        "function_score" : 
+        {
+            "query" : 
+            {
+                "bool" : 
+                {
+                    "must" :
+                    {
+                        "multi_match" : 
+                        {
+                            "query":    "Avengers", 
+                            "fields": [ "primaryTitle", "originalTitle" ],
+                            "type" : "cross_fields"
+                        }
+                    },
+                    "filter" :
+                    [
+                        {
+                            "terms": 
+                            {
+                                "genres": [ "action", "adventure" ]
+                            }
+                            
+                        },
+                        {
+                            "match": 
+                            {
+                                "titleType": "movie"
+                            }
+                        }
+                    ]
+
+                }
+            },
+            "functions" : 
+            [
+                {
+                    "filter": { "term": { "titleType": "movie" } },
+                    "weight": 2
+                  },
+                {
+                    "gauss" : 
+                    {
+                        "startYear" : 
+                        {
+                            "origin" : "now",
+                            "scale" : "900d",
+                            "decay" : 0.5
+                        }
+                    }
+                },
+                {
+                    "linear" :
+                    {
+                        "averageRating" :
+                        {
+                            "origin" : "10",
+                            "scale" : "5",
+                            "decay" : 0.5
+                        }
+                    }
+                },
+                {
+                    "filter": {
+                        "exists": {
+                          "field": "startYear"
+                        }
+                    },  
+                    "weight" : 2
+                }
+            ]
+        }
+    }
+}

@@ -4,6 +4,7 @@ import com.searchpath.ClientFactory;
 import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
 import com.searchpath.entities.Message;
+import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -13,6 +14,7 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.functionscore.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Singleton
 public class ElasticSearchingModule implements SearchingModule {
@@ -87,7 +90,22 @@ public class ElasticSearchingModule implements SearchingModule {
         aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
         aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
         if (rangeAggregates!=null) aggregations.subAggregation(rangeAggregates);
-        searchSourceBuilder.query(completeQuery).aggregation(aggregations);
+
+
+        // CREATION OF FUNCTION SCORE QUERY //
+        ScoreFunctionBuilder functionGaussDecayStartYear =
+                new GaussDecayFunctionBuilder("startYear", "now", "900d", "0d", 0.5);
+        ScoreFunctionBuilder functionLinearDecayRating = new LinearDecayFunctionBuilder("averageRating", 10, 5, 0, 0.5);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating)};
+
+        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions);
+
+
+
+      //  searchSourceBuilder.query(completeQuery).aggregation(aggregations);
+        searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
 
         try {
@@ -99,6 +117,7 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         return new ImdbResponse();
     }
+
 
     //@Override
     public ImdbResponse processQueryOriginal(String query, String genre, String type, String year) {

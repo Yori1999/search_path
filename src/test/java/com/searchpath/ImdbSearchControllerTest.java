@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.util.Map;
 
 @MicronautTest
 public class ImdbSearchControllerTest {
@@ -63,7 +62,7 @@ public class ImdbSearchControllerTest {
         Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
     }
 
-    //Test searc
+    //Test search
 
 
 }
