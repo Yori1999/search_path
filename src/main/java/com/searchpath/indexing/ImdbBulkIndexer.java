@@ -6,6 +6,7 @@ import com.searchpath.FileParser;
 import com.searchpath.entities.ImdbDocument;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
@@ -20,13 +21,10 @@ public class ImdbBulkIndexer implements Indexer {
 
     @Override
     public void index(String filename, String separator) {
-        //get all the movies
+        //Gets all the movies with their corresponding ratings' information if they have it available
         FileParser fileParser = new FileParser();
         List<ImdbDocument> filmList = fileParser.parseFilmsWithRatings("src/main/resources/" + filename, "src/main/resources/dataRatings.tsv", separator);
         int filmListSize = filmList.size();
-
-        //get all the ratings
-        //Map<String, double[]> ratings = fileParser.parseRatings("src/main/resources/" + "dataRatings.tsv", separator);
 
         ClientFactory clientFactory = new ClientFactory();
         RestHighLevelClient client = clientFactory.getClient();
@@ -42,21 +40,12 @@ public class ImdbBulkIndexer implements Indexer {
         //INDEX IN BULKS
         int processSize = 10000;
         int counter = 0;
-
         ImdbDocument film; Map<String, Object> jsonMap;
-
         BulkRequest bulk = new BulkRequest();
-
         for (int i = 0; i < filmListSize; i++){
             counter++;
             System.out.println(counter);
             film = filmList.get(i);
-            //Get the rating if it has one
-           /* if (ratings.containsKey(film.getTconst())) {
-                film.setAverageRating(ratings.get(film.getTconst())[0]);
-                film.setNumVotes((int)ratings.get(film.getTconst())[1]);
-            }*/
-
             jsonMap = jsonMappingWithRatings(film.getTconst(), film.getTitleType(), film.getPrimaryTitle(), film.getOriginalTitle(),
                     film.getIsAdult(), film.getStart_year(), film.getEnd_year(), film.getRuntimeMinutes(), film.getGenres(),
                     film.getAverageRating(), film.getNumVotes());
@@ -72,7 +61,6 @@ public class ImdbBulkIndexer implements Indexer {
                 counter = 0;
             }
         }
-
         System.out.println("FINISHED INDEXING PROCESS");
     }
 
@@ -87,28 +75,12 @@ public class ImdbBulkIndexer implements Indexer {
         jsonMap.put("isAdult", isAdult);
         if (startYear.equals("\\N")) startYear = null;
         jsonMap.put("startYear", startYear);
+        if (endYear.equals("\\N")) endYear = null;
         jsonMap.put("endYear", endYear);
         jsonMap.put("runtimeMinutes", runtimeMinutes);
         jsonMap.put("genres", genres);
         jsonMap.put("averageRating", averageRating);
         jsonMap.put("numVotes", numVotes);
-        return jsonMap;
-    }
-
-   private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
-                                            String isAdult, String startYear, String endYear, String runtimeMinutes,
-                                            String genres){
-        Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("tconst", tconst);
-        jsonMap.put("titleType", titleType);
-        jsonMap.put("primaryTitle", primaryTitle);
-        jsonMap.put("originalTitle", originalTitle);
-        jsonMap.put("isAdult", isAdult);
-        if (startYear.equals("\\N")) startYear = null;
-        jsonMap.put("startYear", startYear);
-        jsonMap.put("endYear", endYear);
-        jsonMap.put("runtimeMinutes", runtimeMinutes);
-        jsonMap.put("genres", genres);
         return jsonMap;
     }
 
@@ -118,16 +90,13 @@ public class ImdbBulkIndexer implements Indexer {
         ObjectMapper objectMapper = new ObjectMapper();
 
         Map<String, Object> mappingMap = objectMapper.readValue(
-                //this.getClass().getClassLoader().getResourceAsStream("mappingImdbIndexPrueba.json")
                 this.getClass().getClassLoader().getResourceAsStream("mappingImdbIndexWithRatings.json")
                 , Map.class);
         Map<String, Object> settingsMap = objectMapper.readValue(
                 this.getClass().getClassLoader().getResourceAsStream("settingsImdbIndex.json")
                 , Map.class);
-
         create.settings(settingsMap);
         create.mapping(mappingMap);
-
         client.indices().create(create, RequestOptions.DEFAULT);
     }
 

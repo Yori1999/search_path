@@ -82,8 +82,4 @@ public class ImdbDocument {
     public double getAverageRating() { return averageRating; }
 
     public int getNumVotes() { return numVotes; }
-
-    public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
-
-    public void setNumVotes(int numVotes) { this.numVotes = numVotes; }
 }

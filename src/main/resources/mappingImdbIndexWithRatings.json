@@ -41,7 +41,7 @@
     },
     "endYear":
     {
-      "type" : "text"
+      "type" : "date"
     },
     "runtimeMinutes":
     {
