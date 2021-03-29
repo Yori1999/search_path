@@ -10,64 +10,6 @@ import java.util.*;
 @Singleton
 public class FileParser {
 
-    public List<ImdbDocument> parseFilmsWithRatings(String filenameFilms, String filenameRatings, String separator){
-        List<ImdbDocument> films = new ArrayList<>();
-
-        try {
-            File filefilms = new File(filenameFilms);
-            File fileratings = new File(filenameRatings);
-            Scanner readerFilms = new Scanner(filefilms);
-            Scanner readerRatings = new Scanner(fileratings);
-
-            //TO REUSE
-            String line;
-            String[] data;
-
-            String tconst, primaryTitle, originalTitle, isAdult, titleType, startYear, endYear, runtimeMinutes, genres;
-            double averageRating;
-            int numVotes;
-
-            readerFilms.nextLine(); //Because we're not interested in the first line
-            readerRatings.nextLine(); //the same as above
-
-            String[] ratingsData = readerRatings.nextLine().split(separator);
-
-            while (readerFilms.hasNextLine()){ //the films file is longer than the ratings one
-                line = readerFilms.nextLine();
-                data = line.split(separator);
-
-                tconst = data[0];
-                titleType = data[1];
-                primaryTitle = data[2];
-                originalTitle = data[3];
-                isAdult = data[4];
-                startYear = data[5];
-                endYear = data[6];
-                runtimeMinutes = data[7];
-                genres = data[8];
-                averageRating = 0.0;
-                numVotes = 0;
-
-                if (tconst.equals(ratingsData[0])){
-                    averageRating = Double.parseDouble(ratingsData[1]);
-                    numVotes = Integer.parseInt(ratingsData[2]);
-                    if (readerRatings.hasNextLine()) {
-                        ratingsData = readerRatings.nextLine().split(separator);
-                    }
-                }
-
-                films.add( new ImdbDocument(tconst, primaryTitle, titleType, originalTitle, isAdult, genres,
-                        startYear, endYear, runtimeMinutes, averageRating, numVotes) );
-            }
-            readerFilms.close();
-            readerRatings.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace(); //Do something else
-        }
-
-        return films;
-    }
-
 
     public List<ImdbDocument> parseFilms(String filename, String separator){
         List<ImdbDocument> films = new ArrayList<>();

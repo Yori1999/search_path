@@ -48,7 +48,7 @@ public class ElasticSearchingModule implements SearchingModule {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
         if (query != null){
-            completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS));
+            completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
@@ -94,13 +94,20 @@ public class ElasticSearchingModule implements SearchingModule {
 
 
         // CREATION OF FUNCTION SCORE QUERY //
+        ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(5);
+        ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(3);
+        ScoreFunctionBuilder functionWeightTvEpisodes = new WeightBuilder().setWeight(0.1f);
         ScoreFunctionBuilder functionGaussDecayStartYear =
-                new GaussDecayFunctionBuilder("startYear", "now", "900d", "0d", 0.5);
-        ScoreFunctionBuilder functionLinearDecayRating = new LinearDecayFunctionBuilder("averageRating", 10, 5, 0, 0.5);
+                new GaussDecayFunctionBuilder("startYear", "now", "2000d", "0d", 0.5);
+        ScoreFunctionBuilder functionLinearDecayRating =
+                new LinearDecayFunctionBuilder("averageRating", 100, 50, 0, 0.5);
         ScoreFunctionBuilder functionWeightStartYearExists = new WeightBuilder().setWeight(2);
-        ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(3);
-        ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(1.2f);
-        ScoreFunctionBuilder functionLogNumVotes = new FieldValueFactorFunctionBuilder("numVotes").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.LOG1P);
+        ScoreFunctionBuilder functionNumVotes =
+                new FieldValueFactorFunctionBuilder("numVotes").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
+        ScoreFunctionBuilder functionAverageRating =
+                new FieldValueFactorFunctionBuilder("averageRating").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.LOG1P);
+
+        //Exact match para los títulos
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
@@ -110,9 +117,13 @@ public class ElasticSearchingModule implements SearchingModule {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
                         termQuery("titleType", "movie"), functionWeightMovie),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "tvSeries"), functionWeightTvSeries),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLogNumVotes)
+                        termQuery("titleType", "tvseries"), functionWeightTvSeries),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        termQuery("titleType", "tvepisode"), functionWeightTvEpisodes),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionNumVotes),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionAverageRating)
         };
+
 
         FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions);
 
@@ -205,7 +216,10 @@ public class ElasticSearchingModule implements SearchingModule {
             } catch (NumberFormatException e){
                 end_year = "";
             }
-            films.add(new ImdbObject(id, title, genres, type, start_year, end_year));
+            double averageRating = (double)sourceAsMap.get("averageRating");
+            int numVotes = (int)sourceAsMap.get("numVotes");
+
+            films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
         }
         ImdbObject[] items = new ImdbObject[films.size()];
         return new ImdbResponse(total, films.toArray(items), null);
@@ -235,7 +249,9 @@ public class ElasticSearchingModule implements SearchingModule {
             } catch (NumberFormatException e){
                 end_year = "";
             }
-            films.add(new ImdbObject(id, title, genres, type, start_year, end_year));
+            double averageRating = (double)sourceAsMap.get("averageRating");
+            int numVotes = (int)sourceAsMap.get("numVotes");
+            films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
         }
         ImdbObject[] items = new ImdbObject[films.size()];
         return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));

@@ -27,7 +27,7 @@ public class ImdbBulkIndexer implements Indexer {
     @Override
     public void index(String filename, String separator) {
         //Gets all the movies with their corresponding ratings' information if they have it available
-        List<ImdbDocument> filmList = fileParser.parseFilmsWithRatings("src/main/resources/" + filename, "src/main/resources/dataRatings.tsv", separator);
+        List<ImdbDocument> filmList = fileParser.parseFilms("src/main/resources/" + filename, separator);
         int filmListSize = filmList.size();
 
         RestHighLevelClient client = clientFactory.getClient();
@@ -80,7 +80,11 @@ public class ImdbBulkIndexer implements Indexer {
             System.out.println(counter);
             counter++;
             updateRequest = new UpdateRequest("imdb", pair.getKey());
-            updateRequest.doc(jsonBuilder().startObject().field("averageRating", pair.getValue()[0]).field("numVotes", (int)pair.getValue()[1]).endObject());
+            updateRequest.doc(jsonBuilder()
+                    .startObject()
+                        .field("averageRating", pair.getValue()[0])
+                        .field("numVotes", (int)pair.getValue()[1])
+                    .endObject());
             bulk.add(updateRequest);
             if ( counter == processSize || i == ratingsListSize-1){
                 try {

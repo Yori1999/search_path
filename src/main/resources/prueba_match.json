@@ -13,41 +13,32 @@
                         {
                             "query":    "Avengers", 
                             "fields": [ "primaryTitle", "originalTitle" ],
-                            "type" : "cross_fields"
+                            "type" : "best_fields"
                         }
-                    },
-                    "filter" :
-                    [
-                        {
-                            "terms": 
-                            {
-                                "genres": [ "action", "adventure" ]
-                            }
-                            
-                        },
-                        {
-                            "match": 
-                            {
-                                "titleType": "movie"
-                            }
-                        }
-                    ]
-
+                    }
                 }
             },
             "functions" : 
             [
                 {
                     "filter": { "term": { "titleType": "movie" } },
-                    "weight": 2
-                  },
+                    "weight": 5
+                },
+                {
+                    "filter": { "term": { "titleType": "tvseries" } },
+                    "weight": 3
+                },
+                {
+                    "filter": { "term": { "titleType": "tvepisode" } },
+                    "weight": 0.1
+                },
                 {
                     "gauss" : 
                     {
                         "startYear" : 
                         {
                             "origin" : "now",
-                            "scale" : "900d",
+                            "scale" : "2000d",
                             "decay" : 0.5
                         }
                     }
@@ -57,8 +48,8 @@
                     {
                         "averageRating" :
                         {
-                            "origin" : "10",
-                            "scale" : "5",
+                            "origin" : "100",
+                            "scale" : "50",
                             "decay" : 0.5
                         }
                     }
@@ -70,6 +61,24 @@
                         }
                     },  
                     "weight" : 2
+                },
+                {
+                    "field_value_factor":
+                    {
+                        "field": "numVotes",
+                        "factor" : 0.5,
+                        "modifier" : "sqrt",
+                        "missing" : 0
+                    }
+                },
+                {
+                    "field_value_factor":
+                    {
+                        "field": "averageRating",
+                        "factor": 0.5,
+                        "modifier" : "log1p",
+                        "missing" : 0
+                    }
                 }
             ]
         }
