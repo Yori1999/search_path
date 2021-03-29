@@ -10,6 +10,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -96,58 +97,28 @@ public class ElasticSearchingModule implements SearchingModule {
         ScoreFunctionBuilder functionGaussDecayStartYear =
                 new GaussDecayFunctionBuilder("startYear", "now", "900d", "0d", 0.5);
         ScoreFunctionBuilder functionLinearDecayRating = new LinearDecayFunctionBuilder("averageRating", 10, 5, 0, 0.5);
+        ScoreFunctionBuilder functionWeightStartYearExists = new WeightBuilder().setWeight(2);
+        ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(3);
+        ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(1.2f);
+        ScoreFunctionBuilder functionLogNumVotes = new FieldValueFactorFunctionBuilder("numVotes").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.LOG1P);
+
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating)};
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        existsQuery("startYear"), functionWeightStartYearExists),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        termQuery("titleType", "movie"), functionWeightMovie),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        termQuery("titleType", "tvSeries"), functionWeightTvSeries),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLogNumVotes)
+        };
 
         FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions);
 
-
-
-      //  searchSourceBuilder.query(completeQuery).aggregation(aggregations);
         searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
 
-        try {
-            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-            return parseResponseWithAggregations(response);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ImdbResponse();
-    }
-
-
-    //@Override
-    public ImdbResponse processQueryOriginal(String query, String genre, String type, String year) {
-        if (query == null) query = ""; //Protect the multi match query from receiving a null query
-        if (genre == null) genre = "";
-        if (type == null) type = "";
-        if (year == null) year = "";
-
-        String[] genres = genre.replace(" ", "").split(",");
-        String types = type.replace(" ", "").replace(",", " ");
-
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices("imdb");
-
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-
-        BoolQueryBuilder completeQuery = QueryBuilders.boolQuery()
-                .must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS))
-                .filter(QueryBuilders.matchQuery("titleType", types))
-                .filter(QueryBuilders.termsQuery("genres", genres));
-
-        //BUILD AGGREGATES
-        AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
-        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
-        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
-
-        searchSourceBuilder.query(completeQuery).aggregation(aggregations);
-
-
-        searchRequest.source(searchSourceBuilder);
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
             return parseResponseWithAggregations(response);
