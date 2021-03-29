@@ -16,17 +16,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 @Singleton
 public class ImdbBulkIndexer implements Indexer {
+
+    FileParser fileParser = new FileParser();
+    ClientFactory clientFactory = new ClientFactory();
 
     @Override
     public void index(String filename, String separator) {
         //Gets all the movies with their corresponding ratings' information if they have it available
-        FileParser fileParser = new FileParser();
         List<ImdbDocument> filmList = fileParser.parseFilmsWithRatings("src/main/resources/" + filename, "src/main/resources/dataRatings.tsv", separator);
         int filmListSize = filmList.size();
 
-        ClientFactory clientFactory = new ClientFactory();
         RestHighLevelClient client = clientFactory.getClient();
 
         ///// CREATE THE INDEX
@@ -36,7 +39,6 @@ public class ImdbBulkIndexer implements Indexer {
         } catch (IOException e){
             e.printStackTrace();
         }
-
         //INDEX IN BULKS
         int processSize = 10000;
         int counter = 0;
@@ -62,6 +64,35 @@ public class ImdbBulkIndexer implements Indexer {
             }
         }
         System.out.println("FINISHED INDEXING PROCESS");
+    }
+
+    @Override
+    public void updateIndex() throws IOException {
+        Map<String, double[]> ratings = fileParser.parseRatings("src/main/resources/dataRatings.tsv", "\t");
+        RestHighLevelClient client = clientFactory.getClient();
+        int processSize = 10000;
+        int counter = 0;
+        BulkRequest bulk = new BulkRequest();
+        UpdateRequest updateRequest;
+        int i = 0;
+        int ratingsListSize = ratings.size();
+        for (Map.Entry<String, double[]> pair : ratings.entrySet()){
+            System.out.println(counter);
+            counter++;
+            updateRequest = new UpdateRequest("imdb", pair.getKey());
+            updateRequest.doc(jsonBuilder().startObject().field("averageRating", pair.getValue()[0]).field("numVotes", (int)pair.getValue()[1]).endObject());
+            bulk.add(updateRequest);
+            if ( counter == processSize || i == ratingsListSize-1){
+                try {
+                    client.bulk(bulk, RequestOptions.DEFAULT);
+                } catch (IOException e){
+                    e.printStackTrace(); //Just to test
+                }
+                bulk.requests().clear();
+                counter = 0;
+            }
+        }
+        System.out.println("Finished updating");
     }
 
     private Map<String, Object> jsonMappingWithRatings(String tconst, String titleType, String primaryTitle, String originalTitle,

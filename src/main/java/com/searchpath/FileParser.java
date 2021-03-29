@@ -113,30 +113,23 @@ public class FileParser {
         try {
             File file = new File(filename);
             Scanner reader = new Scanner(file);
-
             String line;
             String[] data;
-
             String tconst;
             double averageRating, numVotes;
-
             reader.nextLine(); //Because we're not interested in the first line
             while (reader.hasNextLine()){
                 line = reader.nextLine();
                 data = line.split(separator);
-
                 tconst = data[0];
                 averageRating = Double.parseDouble(data[1]);
                 numVotes = Double.parseDouble(data[2]);
-
                 ratings.put(tconst, new double[]{averageRating, numVotes});
-
             }
             reader.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace(); //Do something else
         }
-
         return ratings;
     }
 
