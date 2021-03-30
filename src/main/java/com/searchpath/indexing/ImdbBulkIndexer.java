@@ -12,6 +12,8 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 
 import javax.inject.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -20,10 +22,89 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 @Singleton
 public class ImdbBulkIndexer implements Indexer {
 
+   /* @Inject
+    FileParser fileParser;
+    @Inject
+    ClientFactory clientFactory;*/
+
     FileParser fileParser = new FileParser();
     ClientFactory clientFactory = new ClientFactory();
 
     @Override
+    public void index(String filename, String separator) {
+        RestHighLevelClient client = clientFactory.getClient();
+
+        ///// CREATE THE INDEX
+        try {
+            createIndex(client);
+            System.out.println("Index creation complete");
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        ///// READS THE DOCUMENT & INDEX AT THE SAME TIME
+        try {
+            File file = new File(filename);
+            Scanner reader = new Scanner(file);
+
+            //TO REUSE
+            String line;
+            String[] data;
+
+            int processSize = 20000;
+            int counter = 0;
+            Map<String, Object> jsonMap;
+            BulkRequest bulk = new BulkRequest();
+
+            String tconst, primaryTitle, originalTitle, isAdult, titleType, startYear, endYear, runtimeMinutes, genres;
+
+            reader.nextLine(); //Because we're not interested in the first line, which is the headers
+            while (reader.hasNextLine()){
+                counter++;
+                System.out.println(counter);
+
+                line = reader.nextLine();
+                data = line.split(separator);
+                tconst = data[0];
+                titleType = data[1];
+                primaryTitle = data[2];
+                originalTitle = data[3];
+                isAdult = data[4];
+                startYear = data[5];
+                endYear = data[6];
+                runtimeMinutes = data[7];
+                genres = data[8];
+                jsonMap = jsonMappingWithRatings(
+                        tconst,
+                        titleType,
+                        primaryTitle,
+                        originalTitle,
+                        isAdult,
+                        startYear,
+                        endYear,
+                        runtimeMinutes,
+                        genres,
+                        0.0,
+                        0);
+                bulk.add(new IndexRequest("imdb").id(tconst).source(jsonMap));
+                if ( counter == processSize || !reader.hasNextLine()){
+                    try {
+                        client.bulk(bulk, RequestOptions.DEFAULT);
+                    } catch (IOException e){
+                        e.printStackTrace(); //Just to test
+                    }
+                    bulk.requests().clear();
+                    counter = 0;
+                }
+            }
+            reader.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace(); //Do something else
+        }
+        System.out.println("FINISHED INDEXING PROCESS");
+    }
+
+   /* @Override
     public void index(String filename, String separator) {
         //Gets all the movies with their corresponding ratings' information if they have it available
         List<ImdbDocument> filmList = fileParser.parseFilms("src/main/resources/" + filename, separator);
@@ -63,7 +144,7 @@ public class ImdbBulkIndexer implements Indexer {
             }
         }
         System.out.println("FINISHED INDEXING PROCESS");
-    }
+    }*/
 
     @Override
     public void updateIndex() throws IOException {

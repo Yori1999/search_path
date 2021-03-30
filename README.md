@@ -31,10 +31,9 @@ git clone https://github.com/Yori1999/search_path.git
 cd search_path
 ./gradlew run
 ```
+You can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
 
-**¡IMPORTANT!**
-
-For the moment, before running the application for the first time, you have to have downloaded the IMDB datasets you'll be working with. Continue reading the next section to learn about the datasets you're going to use and how to manage them.
+Continue reading the next section to learn about the datasets you're going to use and how to manage them.
 
 ## Indexing the IMDB dataset
 After getting ElasticSearch up and running, you'll need to create an index and index some documents. We're going to work with some of the datasets that IMDB has made public, one for retrieving all data for IMDB media and another which has the ratings for (some of) that media.
@@ -46,7 +45,9 @@ You can find the original datasets here:
 
 Once you download the files, rename them as "data.tsv" and "dataRatings.tsv" respectively and place them inside the "resources" folder of the project (/src/main/resources) so that the application can locate the files when running the indexing process.
 
-As of now, the indexing process triggers whenever the application starts and no "imdb" index is found. If you want to reindex all the documents, simply delete the index you already have and re-run the application. This can be done via terminal with the following command:
+For triggering the indexing process, simply access http://localhost:8080/index, or run the command `curl http://localhost:8080/index`.
+
+If you want to reindex all the documents, simply delete the index you already have and re-run the application. This can be done via terminal with the following command:
 `curl -XDELETE http://localhost:9200/imdb`.
 
 You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly. In the meantime, you can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.

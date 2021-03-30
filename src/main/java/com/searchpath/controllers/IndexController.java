@@ -29,7 +29,7 @@ public class IndexController {
     public void index() {
         try { //I think this is dirty as hell but I was trying to move fast and fix this later
             Indexer bulkIndexer = new ImdbBulkIndexer();
-            bulkIndexer.index("data.tsv", "\t"); //Also, this may be dirty. Externalize this
+            bulkIndexer.index("src/main/resources/data.tsv", "\t"); //Also, this may be dirty. Externalize this
             bulkIndexer.updateIndex();
         } catch (ElasticsearchStatusException e){
             System.out.println("The index is already created");
