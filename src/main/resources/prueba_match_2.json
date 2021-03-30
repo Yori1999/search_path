@@ -1,0 +1,90 @@
+{
+    "query" : 
+    {
+        "function_score" : 
+        {
+            "query" : 
+            {
+                "bool" : 
+                {
+                    "must" :
+                    {
+                        "multi_match" : 
+                        {
+                            "query": "avengers", 
+                            "fields": [ "primaryTitle", "originalTitle" ],
+                            "type" : "best_fields"
+                        }
+                    }
+                }
+            },
+            "functions" : 
+            [
+                {
+                    "filter": { "term": { "titleType": "movie" } },
+                    "weight": 10
+                },
+                {
+                    "filter": { "term": { "titleType": "tvseries" } },
+                    "weight": 3
+                },
+                {
+                    "filter": { "term": { "titleType": "tvepisode" } },
+                    "weight": 0.1
+                },
+                {
+                    "filter": { "term": { "titleType": "videogame" } },
+                    "weight": 2
+                },
+                {
+                    "gauss" : 
+                    {
+                        "startYear" : 
+                        {
+                            "origin" : "now",
+                            "scale" : "9000d",
+                            "decay" : 0.38
+                        }
+                    }
+                },
+                {
+                    "linear" :
+                    {
+                        "averageRating" :
+                        {
+                            "origin" : "100",
+                            "scale" : "50",
+                            "decay" : 0.5
+                        }
+                    }
+                },
+                {
+                    "filter": {
+                        "exists": {
+                          "field": "startYear"
+                        }
+                    },  
+                    "weight" : 2
+                },
+                {
+                    "field_value_factor":
+                    {
+                        "field": "numVotes",
+                        "factor" : 5,
+                        "modifier" : "sqrt",
+                        "missing" : 0
+                    }
+                },
+                {
+                    "field_value_factor":
+                    {
+                        "field": "averageRating",
+                        "factor": 2,
+                        "modifier" : "sqrt",
+                        "missing" : 0
+                    }
+                }
+            ]
+        }
+    }
+}

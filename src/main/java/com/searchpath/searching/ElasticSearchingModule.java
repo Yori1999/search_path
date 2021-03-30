@@ -103,11 +103,10 @@ public class ElasticSearchingModule implements SearchingModule {
                 new LinearDecayFunctionBuilder("averageRating", 100, 50, 0, 0.5);
         ScoreFunctionBuilder functionWeightStartYearExists = new WeightBuilder().setWeight(2);
         ScoreFunctionBuilder functionNumVotes =
-                new FieldValueFactorFunctionBuilder("numVotes").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
+                new FieldValueFactorFunctionBuilder("numVotes").factor(1f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQUARE);
         ScoreFunctionBuilder functionAverageRating =
-                new FieldValueFactorFunctionBuilder("averageRating").factor(0.5f).missing(0).modifier(FieldValueFactorFunction.Modifier.LOG1P);
+                new FieldValueFactorFunctionBuilder("averageRating").factor(2f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
 
-        //Exact match para los títulos
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),

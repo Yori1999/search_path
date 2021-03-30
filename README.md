@@ -1,5 +1,10 @@
 # IMDB Search Project - Empathy Academy
 
+## Installing gradle
+For running the application correctly, you'll need to have gradle installed in your computer. To do so using SDKMAN, use the following command (notice we're using gradle v.6.4.1):
+
+`sdk install gradle 6.4.1`
+
 ## Starting ElasticSearch locally
 We're going to work with ElasticSearch locally, running it as a Docker image. For that we'll need Docker CE and ElasticSearch (in our examples we'll be referring to Elastic's v.7.11.1).
 
@@ -7,9 +12,10 @@ First, download Docker Desktop. It can be found here: (https://www.docker.com/pr
 
 From the terminal, run the following commands:
 
-`docker pull docker.elastic.co/elasticsearch/elasticsearch:7.11.1`
-
-`docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.11.1`
+```sh
+docker pull docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+```
 
 To make sure it is running correctly:
 
@@ -45,16 +51,30 @@ As of now, the indexing process triggers whenever the application starts and no 
 
 You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly. In the meantime, you can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
 
-### Additional Docker considerations
-It's quite advisable to save the ElasticSearch's image after setting the index, so that you can have different versions of it.
-
 We apologize in advance for the amount of time the indexing takes as of now; we're currently working on optimizing this operation.
+
+### Additional Docker considerations
+It's quite advisable to save the ElasticSearch's image after setting the index, so that you can have different versions of it. To do so, use the following command:
+
+`docker commit "id container" -q elastisearch:<name of the image>`
+
+To obtain the "id container", run `docker ps`.
+
+Alternatively, you can do both at the same time like this:
+
+`docker commit docker ps -q elastisearch:<name of the image>`
+
+And then, to restore that image:
+
+`docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch_imdb:<name of the image>`
 
 ## Using the Search API
 The base URL for the Search API is the following: http://localhost:8080/search.
 
 ### Search parameters
 All parameters we're going to describe in this section are optional. Basically, you can search by title, genre(s), type(s) of media and/or years.
+
+### Query examples
 
 ## Additional documentation
 
