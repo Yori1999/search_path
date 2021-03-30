@@ -76,6 +76,13 @@ All parameters we're going to describe in this section are optional. Basically, 
 
 ### Query examples
 
+- Searches for all results: http://localhost:8080/search
+- Searches for all documents whose title matches "Avengers": http://localhost:8080/search?query=Avengers
+- Searches for all action or adventure movies or TV Series whose title contains "Avengers" (notice it doesn't matter how you write the text for your queries): http://localhost:8080/search?query=Avengers&genre=Action,adveNture&type=movie,TVSERIES
+- Searches for all adventure movies and videogames released between 2000 and 2017: http://localhost:8080/search?&genre=adventure&type=movie,videoGame&year=2000/2017
+
+**IMPORTANT:** If you try to search http://localhost:8080/search?query=, there will be no results returned. If you want all results, simply use the base query http://localhost:8080/search.
+
 ## Additional documentation
 
 ### Micronaut 2.3.2 Documentation
