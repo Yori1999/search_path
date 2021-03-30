@@ -12,7 +12,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 
 import javax.inject.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -40,7 +39,7 @@ public class ImdbBulkIndexer implements Indexer {
             e.printStackTrace();
         }
         //INDEX IN BULKS
-        int processSize = 10000;
+        int processSize = 20000;
         int counter = 0;
         ImdbDocument film; Map<String, Object> jsonMap;
         BulkRequest bulk = new BulkRequest();

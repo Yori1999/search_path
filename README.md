@@ -51,7 +51,7 @@ As of now, the indexing process triggers whenever the application starts and no 
 
 You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly. In the meantime, you can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
 
-We apologize in advance for the amount of time the indexing takes as of now; we're currently working on optimizing this operation.
+We apologize in advance for the amount of time (and memory!) the indexing takes as of now, specially the first time you try to index anything; we're currently working on optimizing this operation.
 
 ### Additional Docker considerations
 It's quite advisable to save the ElasticSearch's image after setting the index, so that you can have different versions of it. To do so, use the following command:
@@ -69,7 +69,9 @@ And then, to restore that image:
 `docker run --rm -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch_imdb:<name of the image>`
 
 ## Using the Search API
-The base URL for the Search API is the following: http://localhost:8080/search.
+The base URL for the Search API is the following: http://localhost:8080/search. With this, all documents are returned, ordered with a certain criteria that takes into account average rating and number of votes to calculate the rating (popularity). Also, movies and TV Series have precedence, as it's what's most people comes searching for when using IMDB.
+
+However, you can tune your search with several parameters that'll help you find what you're looking for.
 
 ### Search parameters
 All parameters we're going to describe in this section are optional. Basically, you can search by title, genre(s), type(s) of media and/or years.
