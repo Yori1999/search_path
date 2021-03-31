@@ -1,4 +1,6 @@
 micronaut:
   application:
     name: search_path
+  server:
+    port: 8081
 elasticsearch.httpHosts: '"http://localhost:9200,http://127.0.0.2:9200"'
