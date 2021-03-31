@@ -94,18 +94,19 @@ public class ElasticSearchingModule implements SearchingModule {
 
 
         // CREATION OF FUNCTION SCORE QUERY //
-        ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(5);
+        ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(10);
         ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(3);
         ScoreFunctionBuilder functionWeightTvEpisodes = new WeightBuilder().setWeight(0.1f);
+        ScoreFunctionBuilder functionWeightVideogames = new WeightBuilder().setWeight(2f);
         ScoreFunctionBuilder functionGaussDecayStartYear =
-                new GaussDecayFunctionBuilder("startYear", "now", "2000d", "0d", 0.5);
+                new GaussDecayFunctionBuilder("startYear", "now", "9000d", "0d", 0.38);
         ScoreFunctionBuilder functionLinearDecayRating =
                 new LinearDecayFunctionBuilder("averageRating", 100, 50, 0, 0.5);
         ScoreFunctionBuilder functionWeightStartYearExists = new WeightBuilder().setWeight(2);
         ScoreFunctionBuilder functionNumVotes =
-                new FieldValueFactorFunctionBuilder("numVotes").factor(1f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQUARE);
+                new FieldValueFactorFunctionBuilder("numVotes").factor(5).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
         ScoreFunctionBuilder functionAverageRating =
-                new FieldValueFactorFunctionBuilder("averageRating").factor(2f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
+                new FieldValueFactorFunctionBuilder("averageRating").factor(2).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
 
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
@@ -119,6 +120,8 @@ public class ElasticSearchingModule implements SearchingModule {
                         termQuery("titleType", "tvseries"), functionWeightTvSeries),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
                         termQuery("titleType", "tvepisode"), functionWeightTvEpisodes),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        termQuery("titleType", "videogame"), functionWeightVideogames),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionNumVotes),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionAverageRating)
         };
