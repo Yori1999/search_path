@@ -2,5 +2,7 @@ micronaut:
   application:
     name: search_path
   server:
-    port: 8081
+    port: 8080
+    cors:
+      enabled: true
 elasticsearch.httpHosts: '"http://localhost:9200,http://127.0.0.2:9200"'
