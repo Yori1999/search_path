@@ -84,7 +84,20 @@ All parameters we're going to describe in this section are optional. Basically, 
 
 ### What do I get?
 Queries will return a JSON response with the following fields:
-
+- `total`: the total number of hits. If it's greater than 10000, then returns 10000
+- `items`: list of retrieved items/entries. If the number of matches is greater than 10, then it'll only return the first 10 results. Each of these results will have the following fields:
+    - `id` (string): the unique identifier of the title. Matches its index identifier
+    - `title` (string): the (primary) title
+    - `genres` (array of strings): an array containing the different genres to which this title belongs
+    - `type` (string): the type of media this title is classified as
+    - `start_year` (string, YYYY format): the year in which this title was released or, in the case of TV Series, the year in which it began broadcasting
+    - `end_year` (string, YYYY format) (optional): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
+    - `average_rating` (double): the average rating this title has
+    - `num_votes` (integer): the number of votes this title has received in order to compute the average rating
+- `aggregations`: list of different aggregations
+    - `types`: total hits for each type of media present in the results
+    - `genres`: total hits for each genre present in the results
+    - `dates` (optional): total hits for each decade in case the year parameter was specified *PENDING CHANGES*
 
 ### Query examples
 
