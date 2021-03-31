@@ -31,11 +31,11 @@ git clone https://github.com/Yori1999/search_path.git
 cd search_path
 ./gradlew run
 ```
-You can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
+You can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`. If you get "Hello World" as a response, then everything is OK.
 
 Continue reading the next section to learn about the datasets you're going to use and how to manage them.
 
-## Indexing the IMDB dataset
+## Indexing the IMDB datasets
 After getting ElasticSearch up and running, you'll need to create an index and index some documents. We're going to work with some of the datasets that IMDB has made public, one for retrieving all data for IMDB media and another which has the ratings for (some of) that media.
 
 You can find the original datasets here:
@@ -52,18 +52,16 @@ If you want to reindex all the documents, simply delete the index you already ha
 
 You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly. In the meantime, you can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
 
-We apologize in advance for the amount of time (and memory!) the indexing takes as of now, specially the first time you try to index anything; we're currently working on optimizing this operation.
-
 ### Additional Docker considerations
 It's quite advisable to save the ElasticSearch's image after setting the index, so that you can have different versions of it. To do so, use the following command:
 
-`docker commit "id container" -q elastisearch:<name of the image>`
+`docker commit <id container> -q elastisearch:<name of the image>`
 
 To obtain the "id container", run `docker ps`.
 
 Alternatively, you can do both at the same time like this:
 
-`docker commit docker ps -q elastisearch:<name of the image>`
+``docker commit `docker ps -q` elastisearch:<name of the image>``
 
 And then, to restore that image:
 
@@ -76,6 +74,17 @@ However, you can tune your search with several parameters that'll help you find 
 
 ### Search parameters
 All parameters we're going to describe in this section are optional. Basically, you can search by title, genre(s), type(s) of media and/or years.
+
+| Parameter | Description | Format | Basic Example |  "Complex" example |
+| :--- | :--- | :--- | :--- | :--- |
+| query | Title or original title (looks in both fields) of the media | \<string\> | Tron | Avengers Age of Ultron |
+| genre | Comma separated list of genres. For an entry to match, at least one of its genres must be one of the specified ones | \<string\>[,\<string\>]* | Adventure | adventure,action,drama |
+| type | Comma separated list of types. For an entry to match, its type must be one of the specified ones | \<string\>[,\<string\>]* | movie | movie,videogame |
+| year | Comma separated list of year ranges. For an entry to match, it must have been released (startYear) during one of those periods of time | \<YYYY\>/\<YYYY\>[,\<YYYY\>/\<YYYY\>]* | 2000/2010 | 2000/2010,2012/2017 |
+
+### What do I get?
+Queries will return a JSON response with the following fields:
+
 
 ### Query examples
 

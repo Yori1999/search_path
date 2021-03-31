@@ -59,6 +59,8 @@ public class ImdbBulkIndexer implements Indexer {
             String tconst, primaryTitle, originalTitle, isAdult, titleType, startYear, endYear, runtimeMinutes, genres;
 
             reader.nextLine(); //Because we're not interested in the first line, which is the headers
+
+            int i = 0;
             while (reader.hasNextLine()){
                 counter++;
                 System.out.println(counter);
@@ -94,13 +96,16 @@ public class ImdbBulkIndexer implements Indexer {
                         e.printStackTrace(); //Just to test
                     }
                     bulk.requests().clear();
+                    i += counter;
                     counter = 0;
                 }
             }
             reader.close();
+            System.out.println("Number of indexed documents (total): " + i);
         } catch (FileNotFoundException e) {
             e.printStackTrace(); //Do something else
         }
+
         System.out.println("FINISHED INDEXING PROCESS");
     }
 
