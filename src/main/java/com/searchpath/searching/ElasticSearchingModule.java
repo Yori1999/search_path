@@ -49,11 +49,13 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
-            completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
+            //completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
+            searchSourceBuilder.postFilter(QueryBuilders.termsQuery("genres", genres));
         }
         if (type != null){
             String types = type.replace(" ", "").replace(",", " ");
-            completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
+            //completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
+            searchSourceBuilder.postFilter(QueryBuilders.matchQuery("titleType", types));
         }
         DateRangeAggregationBuilder rangeAggregates = null;
         if (year != null){
@@ -104,7 +106,6 @@ public class ElasticSearchingModule implements SearchingModule {
                 new FieldValueFactorFunctionBuilder("numVotes").factor(5).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
         ScoreFunctionBuilder functionAverageRating =
                 new FieldValueFactorFunctionBuilder("averageRating").factor(2).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
-
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
