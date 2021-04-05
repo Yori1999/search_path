@@ -232,7 +232,10 @@ public class ElasticSearchingModule implements SearchingModule {
             Map<String, Object> sourceAsMap = hit.getSourceAsMap();
             String id = (String) sourceAsMap.get("tconst");
             String title = (String) sourceAsMap.get("primaryTitle");
-            String[] genres = ((String) sourceAsMap.get("genres")).split(",");
+            String[] genres = new String[0];
+            if (!("\\N").equals(sourceAsMap.get("genres"))){
+                genres = ((String) sourceAsMap.get("genres")).split(",");
+            }
             String type = (String) sourceAsMap.get("titleType");
             String start_year;
             try {
