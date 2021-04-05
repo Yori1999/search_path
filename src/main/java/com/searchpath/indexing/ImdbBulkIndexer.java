@@ -22,11 +22,6 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 @Singleton
 public class ImdbBulkIndexer implements Indexer {
 
-   /* @Inject
-    FileParser fileParser;
-    @Inject
-    ClientFactory clientFactory;*/
-
     FileParser fileParser = new FileParser();
     ClientFactory clientFactory = new ClientFactory();
 

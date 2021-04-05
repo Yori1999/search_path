@@ -1,4 +1,7 @@
-# IMDB Search Project - Empathy Academy
+# IMDB Search Project - Empathy Academy - Empathy.co
+This project is being developed as part of the Empathy Academy Program under the Search Path. Development began in early February 2021.
+
+It consists in a Search API which uses Micronaut and performs requests against an ElasticSearch Docker image hosted on port 9200.
 
 ## Installing gradle
 For running the application correctly, you'll need to have gradle installed in your computer. To do so using SDKMAN, use the following command (notice we're using gradle v.6.4.1):
@@ -50,7 +53,7 @@ For triggering the indexing process, simply access http://localhost:8080/index, 
 If you want to reindex all the documents, simply delete the index you already have and re-run the application. This can be done via terminal with the following command:
 `curl -XDELETE http://localhost:9200/imdb`.
 
-You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly. In the meantime, you can check that the server is up and running accessing the following URL in any browser: http://localhost:8080/hello. Or, if you prefer it, running the following command: `curl -s http://localhost:8080/hello`.
+You'll see how the indexing process goes; it'll tell you when it finishes, so that you can start using the Search API properly.
 
 ### Additional Docker considerations
 It's quite advisable to save the ElasticSearch's image after setting the index, so that you can have different versions of it. To do so, use the following command:

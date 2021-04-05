@@ -50,7 +50,7 @@ public class ImdbSearchControllerTest {
         Assertions.assertNotEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
         Assertions.assertNotEquals(null, imdbResponse.getItems());
         Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
-        Assertions.assertNotEquals("movie", imdbResponse.getItems()[0].getType()); //if we search by title
+        Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType()); //if we search by title
 
         //With query parameter indicating a certain movie and specifying we want a movie
         request = HttpRequest.GET("/search?query=Avengers&type=movie");

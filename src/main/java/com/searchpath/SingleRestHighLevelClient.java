@@ -37,6 +37,7 @@ public class SingleRestHighLevelClient {
             client.close();
             System.out.println("Resources released");
         } catch (IOException e){
+            System.out.println("There's been an error while attempting to release resources");
         }
     }
 

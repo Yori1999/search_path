@@ -9,8 +9,6 @@ public class ImdbResponse {
 
     private long total;
     private ImdbObject[] items;
-
-
     private Map<String,Map<String,Long>> aggregations;
 
     @JsonCreator
@@ -22,23 +20,11 @@ public class ImdbResponse {
         this.aggregations = aggregations;
     }
 
-    /*@JsonCreator
-    public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items){
-        this.total = total;
-        this.items = items;
-    }*/
+    public ImdbResponse() {}
 
+    public long getTotal() { return total; }
 
-    public ImdbResponse() {
-    }
+    public ImdbObject[] getItems() { return items; }
 
-    public long getTotal() {
-        return total;
-    }
-
-    public ImdbObject[] getItems() {
-        return items;
-    }
-
-    public Map<String,Map<String,Long>> getAggregations(){return aggregations;}
+    public Map<String,Map<String,Long>> getAggregations(){ return aggregations; }
 }
