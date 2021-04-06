@@ -87,8 +87,8 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
-        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType"));
-        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres"));
+        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
+        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
         if (rangeAggregates!=null) aggregations.subAggregation(rangeAggregates);
 
 
