@@ -3,7 +3,6 @@ package com.searchpath.indexing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.searchpath.ClientFactory;
 import com.searchpath.FileParser;
-import com.searchpath.entities.ImdbDocument;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -71,7 +70,7 @@ public class ImdbBulkIndexer implements Indexer {
                 endYear = data[6];
                 runtimeMinutes = data[7];
                 genres = data[8];
-                jsonMap = jsonMappingWithRatings(
+                jsonMap = jsonMapping(
                         tconst,
                         titleType,
                         primaryTitle,
@@ -80,9 +79,7 @@ public class ImdbBulkIndexer implements Indexer {
                         startYear,
                         endYear,
                         runtimeMinutes,
-                        genres,
-                        0.0,
-                        0);
+                        genres);
                 bulk.add(new IndexRequest("imdb").id(tconst).source(jsonMap));
                 if ( counter == processSize || !reader.hasNextLine()){
                     try {
@@ -179,9 +176,9 @@ public class ImdbBulkIndexer implements Indexer {
         System.out.println("Finished updating");
     }
 
-    private Map<String, Object> jsonMappingWithRatings(String tconst, String titleType, String primaryTitle, String originalTitle,
+    private Map<String, Object> jsonMapping(String tconst, String titleType, String primaryTitle, String originalTitle,
                                             String isAdult, String startYear, String endYear, String runtimeMinutes,
-                                            String genres, double averageRating, int numVotes){
+                                            String genres){
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("tconst", tconst);
         jsonMap.put("titleType", titleType);
@@ -195,8 +192,6 @@ public class ImdbBulkIndexer implements Indexer {
         jsonMap.put("runtimeMinutes", runtimeMinutes);
         if (genres.equals("\\N")) genres = null;
         jsonMap.put("genres", genres);
-        jsonMap.put("averageRating", averageRating);
-        jsonMap.put("numVotes", numVotes);
         return jsonMap;
     }
 
@@ -206,7 +201,7 @@ public class ImdbBulkIndexer implements Indexer {
         ObjectMapper objectMapper = new ObjectMapper();
 
         Map<String, Object> mappingMap = objectMapper.readValue(
-                this.getClass().getClassLoader().getResourceAsStream("mappingImdbIndexWithRatings.json")
+                this.getClass().getClassLoader().getResourceAsStream("mappingImdbIndexWithoutRatings.json")
                 , Map.class);
         Map<String, Object> settingsMap = objectMapper.readValue(
                 this.getClass().getClassLoader().getResourceAsStream("settingsImdbIndex.json")
