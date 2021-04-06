@@ -11,6 +11,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -47,7 +48,9 @@ public class ElasticSearchingModule implements SearchingModule {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
         if (query != null){
-            completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
+            //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle^3").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
+            completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
+
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
@@ -96,26 +99,30 @@ public class ElasticSearchingModule implements SearchingModule {
 
         // CREATION OF FUNCTION SCORE QUERY //
         ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(10);
-        ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(3);
-        ScoreFunctionBuilder functionWeightTvEpisodes = new WeightBuilder().setWeight(0.1f);
-        ScoreFunctionBuilder functionWeightVideogames = new WeightBuilder().setWeight(2f);
+        ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(5);
+        ScoreFunctionBuilder functionWeightShorts = new WeightBuilder().setWeight(3f);
+        ScoreFunctionBuilder functionWeightTvEpisodes = new WeightBuilder().setWeight(0.05f);
+        ScoreFunctionBuilder functionWeightVideogames = new WeightBuilder().setWeight(3f);
         ScoreFunctionBuilder functionGaussDecayStartYear =
                 new GaussDecayFunctionBuilder("startYear", "now", "9000d", "0d", 0.38);
         ScoreFunctionBuilder functionLinearDecayRating =
                 new LinearDecayFunctionBuilder("averageRating", 100, 50, 0, 0.5);
         ScoreFunctionBuilder functionWeightStartYearExists = new WeightBuilder().setWeight(2);
         ScoreFunctionBuilder functionNumVotes =
-                new FieldValueFactorFunctionBuilder("numVotes").factor(5).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
+                new FieldValueFactorFunctionBuilder("numVotes").factor(0.05f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
         ScoreFunctionBuilder functionAverageRating =
-                new FieldValueFactorFunctionBuilder("averageRating").factor(2).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
+                new FieldValueFactorFunctionBuilder("averageRating").factor(0.05f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
 
         FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.matchQuery("primaryTitle", query), new WeightBuilder().setWeight(40)),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
                         existsQuery("startYear"), functionWeightStartYearExists),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
                         termQuery("titleType", "movie"), functionWeightMovie),
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                        termQuery("titleType", "short"), functionWeightShorts),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
                         termQuery("titleType", "tvseries"), functionWeightTvSeries),
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
@@ -127,7 +134,7 @@ public class ElasticSearchingModule implements SearchingModule {
         };
 
 
-        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions);
+        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions).scoreMode(FunctionScoreQuery.ScoreMode.SUM);
 
         searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
