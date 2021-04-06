@@ -3,18 +3,20 @@ package com.searchpath.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.annotation.Nullable;
+
 public class ImdbObject {
 
     private String id, title, type, start_year, end_year;
     private String[] genres;
-    private int num_votes;
-    private double average_rating;
+    private Integer num_votes;
+    private Double average_rating;
 
     @JsonCreator
     public ImdbObject(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("genres") String[] genres,
                       @JsonProperty("type") String type, @JsonProperty("start_year") String start_year,
-                      @JsonProperty("end_year") String end_year, @JsonProperty("average_rating") double average_rating,
-                      @JsonProperty("num_votes") int num_votes){
+                      @JsonProperty("end_year") String end_year, @JsonProperty("average_rating") @Nullable Double average_rating,
+                      @JsonProperty("num_votes") @Nullable Integer num_votes){
         this.id = id;
         this.title = title;
         this.genres = genres;
@@ -47,7 +49,9 @@ public class ImdbObject {
         return genres;
     }
 
-    public int getNum_votes() { return num_votes; }
+    @Nullable
+    public Integer getNum_votes() { return num_votes; }
 
-    public double getAverage_rating() { return average_rating; }
+    @Nullable
+    public Double getAverage_rating() { return average_rating; }
 }

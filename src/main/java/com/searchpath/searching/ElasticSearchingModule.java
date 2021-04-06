@@ -219,8 +219,14 @@ public class ElasticSearchingModule implements SearchingModule {
             } catch (NumberFormatException e){
                 end_year = "";
             }
-            double averageRating = (double)sourceAsMap.get("averageRating");
-            int numVotes = (int)sourceAsMap.get("numVotes");
+            Double averageRating = null;
+            if (sourceAsMap.get("averageRating") != null){
+                averageRating = (double)sourceAsMap.get("averageRating");
+            }
+            Integer numVotes = null;
+            if (sourceAsMap.get("numVotes") != null){
+                numVotes = (int)sourceAsMap.get("numVotes");
+            }
             films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
         }
         ImdbObject[] items = new ImdbObject[films.size()];
