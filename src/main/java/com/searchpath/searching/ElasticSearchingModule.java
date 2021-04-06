@@ -113,28 +113,33 @@ public class ElasticSearchingModule implements SearchingModule {
         ScoreFunctionBuilder functionAverageRating =
                 new FieldValueFactorFunctionBuilder("averageRating").factor(0.05f).missing(0).modifier(FieldValueFactorFunction.Modifier.SQRT);
 
-        FunctionScoreQueryBuilder.FilterFunctionBuilder[] functions = {
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.matchQuery("primaryTitle", query), new WeightBuilder().setWeight(40)),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        existsQuery("startYear"), functionWeightStartYearExists),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "movie"), functionWeightMovie),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "short"), functionWeightShorts),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "tvseries"), functionWeightTvSeries),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "tvepisode"), functionWeightTvEpisodes),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
-                        termQuery("titleType", "videogame"), functionWeightVideogames),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionNumVotes),
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionAverageRating)
-        };
+        List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = new ArrayList<>();
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionGaussDecayStartYear));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionLinearDecayRating));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                existsQuery("startYear"), functionWeightStartYearExists));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                termQuery("titleType", "movie"), functionWeightMovie));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                termQuery("titleType", "short"), functionWeightShorts));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                termQuery("titleType", "tvseries"), functionWeightTvSeries));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                termQuery("titleType", "tvepisode"), functionWeightTvEpisodes));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.
+                termQuery("titleType", "videogame"), functionWeightVideogames));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionNumVotes));
+        functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(functionAverageRating));
+        if (query!=null){
+            functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+                    QueryBuilders.matchQuery("primaryTitle", query), new WeightBuilder().setWeight(40)));
+        }
 
 
-        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(completeQuery, functions).scoreMode(FunctionScoreQuery.ScoreMode.SUM);
+        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders
+                .functionScoreQuery(completeQuery, functions.toArray(
+                        new FunctionScoreQueryBuilder.FilterFunctionBuilder[functions.size()]))
+                .scoreMode(FunctionScoreQuery.ScoreMode.SUM);
 
         searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
         searchRequest.source(searchSourceBuilder);
