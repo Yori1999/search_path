@@ -1,5 +1,6 @@
 package com.searchpath.searching;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.searchpath.ClientFactory;
 import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
@@ -24,6 +25,7 @@ import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -159,6 +161,62 @@ public class ElasticSearchingModule implements SearchingModule {
             e.printStackTrace();
         }
         return new ImdbResponse();
+    }
+
+    @Override
+    public ImdbObject processTitleId(String id) {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("imdb");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("tconst", id));
+        searchRequest.source(searchSourceBuilder);
+        try {
+            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
+            return parseImdbObject(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ImdbObject();
+    }
+
+    private ImdbObject parseImdbObject(SearchResponse response) {
+        SearchHit hit = response.getHits().getHits()[0];
+        Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+        String id = (String) sourceAsMap.get("tconst");
+        String title = (String) sourceAsMap.get("primaryTitle");
+        String originalTitle = (String) sourceAsMap.get("originalTitle");
+        String[] genres = new String[0];
+        if (sourceAsMap.get("genres")!=null){
+            genres = ((String) sourceAsMap.get("genres")).split(",");
+        }
+        String type = (String) sourceAsMap.get("titleType");
+        String start_year;
+        try {
+            Integer.parseInt( (String) sourceAsMap.get("startYear") );
+            start_year = (String) sourceAsMap.get("startYear");
+        } catch (NumberFormatException e){
+            start_year = "";
+        }
+        String end_year;
+        try {
+            Integer.parseInt( (String)sourceAsMap.get("endYear") );
+            end_year = (String)sourceAsMap.get("endYear");
+        } catch (NumberFormatException e){
+            end_year = "";
+        }
+        Double averageRating = null;
+        if (sourceAsMap.get("averageRating") != null){
+            averageRating = (double)sourceAsMap.get("averageRating");
+        }
+        Integer numVotes = null;
+        if (sourceAsMap.get("numVotes") != null){
+            numVotes = (int)sourceAsMap.get("numVotes");
+        }
+        boolean isAdult = Integer.parseInt((String)sourceAsMap.get("isAdult"))==1;
+        String runtimeMinutes = (String) sourceAsMap.get("runtimeMinutes");
+
+        return new ImdbObject(id, title, originalTitle, genres, type, start_year, end_year, averageRating, numVotes, runtimeMinutes, isAdult);
+
     }
 
     @Override

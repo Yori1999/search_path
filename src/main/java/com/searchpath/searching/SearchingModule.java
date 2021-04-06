@@ -1,5 +1,6 @@
 package com.searchpath.searching;
 
+import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
 import com.searchpath.entities.Message;
 
@@ -14,6 +15,8 @@ public interface SearchingModule {
 
 
     ImdbResponse processTitleAndTypeQuery(String query);
+
+    ImdbObject processTitleId(String query);
 
     /***
      * Returns a message with the text introduced in the query parameter and the cluster name.
