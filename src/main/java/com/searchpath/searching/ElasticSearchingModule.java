@@ -192,6 +192,41 @@ public class ElasticSearchingModule implements SearchingModule {
 
     // PARSING RESPONSES //
 
+    private ImdbResponse parseResponseWithAggregations(SearchResponse response) {
+        long total = response.getHits().getTotalHits().value;
+        List<ImdbObject> films = new ArrayList<>();
+        SearchHit[] searchHits = response.getHits().getHits();
+        for (SearchHit hit : searchHits){
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            String id = (String) sourceAsMap.get("tconst");
+            String title = (String) sourceAsMap.get("primaryTitle");
+            String[] genres = new String[0];
+            if (sourceAsMap.get("genres")!=null){
+                genres = ((String) sourceAsMap.get("genres")).split(",");
+            }
+            String type = (String) sourceAsMap.get("titleType");
+            String start_year;
+            try {
+                Integer.parseInt( (String) sourceAsMap.get("startYear") );
+                start_year = (String) sourceAsMap.get("startYear");
+            } catch (NumberFormatException e){
+                start_year = "";
+            }
+            String end_year;
+            try {
+                Integer.parseInt( (String)sourceAsMap.get("endYear") );
+                end_year = (String)sourceAsMap.get("endYear");
+            } catch (NumberFormatException e){
+                end_year = "";
+            }
+            double averageRating = (double)sourceAsMap.get("averageRating");
+            int numVotes = (int)sourceAsMap.get("numVotes");
+            films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
+        }
+        ImdbObject[] items = new ImdbObject[films.size()];
+        return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));
+    }
+
     private ImdbResponse parseResponse(SearchResponse response) {
         long total = response.getHits().getTotalHits().value;
         List<ImdbObject> films = new ArrayList<>();
@@ -223,41 +258,6 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         ImdbObject[] items = new ImdbObject[films.size()];
         return new ImdbResponse(total, films.toArray(items), null);
-    }
-
-    private ImdbResponse parseResponseWithAggregations(SearchResponse response) {
-        long total = response.getHits().getTotalHits().value;
-        List<ImdbObject> films = new ArrayList<>();
-        SearchHit[] searchHits = response.getHits().getHits();
-        for (SearchHit hit : searchHits){
-            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-            String id = (String) sourceAsMap.get("tconst");
-            String title = (String) sourceAsMap.get("primaryTitle");
-            String[] genres = new String[0];
-            if (!("\\N").equals(sourceAsMap.get("genres"))){
-                genres = ((String) sourceAsMap.get("genres")).split(",");
-            }
-            String type = (String) sourceAsMap.get("titleType");
-            String start_year;
-            try {
-                Integer.parseInt( (String) sourceAsMap.get("startYear") );
-                start_year = (String) sourceAsMap.get("startYear");
-            } catch (NumberFormatException e){
-                start_year = "";
-            }
-            String end_year;
-            try {
-                Integer.parseInt( (String)sourceAsMap.get("endYear") );
-                end_year = (String)sourceAsMap.get("endYear");
-            } catch (NumberFormatException e){
-                end_year = "";
-            }
-            double averageRating = (double)sourceAsMap.get("averageRating");
-            int numVotes = (int)sourceAsMap.get("numVotes");
-            films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
-        }
-        ImdbObject[] items = new ImdbObject[films.size()];
-        return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));
     }
 
     private Map<String, Map<String, Long>> mapAggregations(ParsedFilter agg) {

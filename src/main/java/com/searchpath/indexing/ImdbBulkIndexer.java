@@ -193,6 +193,7 @@ public class ImdbBulkIndexer implements Indexer {
         if (endYear.equals("\\N")) endYear = null;
         jsonMap.put("endYear", endYear);
         jsonMap.put("runtimeMinutes", runtimeMinutes);
+        if (genres.equals("\\N")) genres = null;
         jsonMap.put("genres", genres);
         jsonMap.put("averageRating", averageRating);
         jsonMap.put("numVotes", numVotes);
