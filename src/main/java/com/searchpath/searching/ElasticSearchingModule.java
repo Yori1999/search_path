@@ -95,7 +95,9 @@ public class ElasticSearchingModule implements SearchingModule {
                     }
                 }
             }
-            completeQuery.filter(datesQuery);
+            //completeQuery.filter(datesQuery);
+            QUERYPRUEBA.filter(datesQuery);
+            postFilters.filter(datesQuery);
         }
         searchSourceBuilder.postFilter(postFilters);
 
@@ -129,11 +131,14 @@ public class ElasticSearchingModule implements SearchingModule {
                     )
             );
         }
-        if (rangeAggregates!=null) aggregations.subAggregation(rangeAggregates);
+        if (rangeAggregates!=null) {
+                    aggregations.subAggregation(rangeAggregates);
+
+        }
 
 
         // CREATION OF FUNCTION SCORE QUERY //
-        List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query);
+        List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query); // a separate method to encapsulate the functions' creation
         FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders
                 .functionScoreQuery(completeQuery, functions.toArray(
                         new FunctionScoreQueryBuilder.FilterFunctionBuilder[functions.size()]))
