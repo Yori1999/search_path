@@ -47,20 +47,27 @@ public class ElasticSearchingModule implements SearchingModule {
         searchRequest.indices("imdb");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
+        BoolQueryBuilder QUERYPRUEBA = QueryBuilders.boolQuery();
+        BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
         if (query != null){
-            //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle^3").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
+            //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
             completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
-
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
             //completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
-            searchSourceBuilder.postFilter(QueryBuilders.termsQuery("genres", genres));
+            postFilters.filter((QueryBuilders.termsQuery("genres", genres)));
+
+            QUERYPRUEBA.filter(QueryBuilders.termsQuery("genres", genres));
+
         }
         if (type != null){
             String types = type.replace(" ", "").replace(",", " ");
             //completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
-            searchSourceBuilder.postFilter(QueryBuilders.matchQuery("titleType", types));
+            postFilters.filter((QueryBuilders.matchQuery("titleType", types)));
+
+            QUERYPRUEBA.filter(QueryBuilders.matchQuery("titleType", types));
+
         }
         DateRangeAggregationBuilder rangeAggregates = null;
         if (year != null){
@@ -90,14 +97,63 @@ public class ElasticSearchingModule implements SearchingModule {
             }
             completeQuery.filter(datesQuery);
         }
+        searchSourceBuilder.postFilter(postFilters);
+
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
-        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
-        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
+//        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
+        if (type==null){
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("types", QUERYPRUEBA).subAggregation(
+                            AggregationBuilders.terms("types").field("titleType").size(100)
+                    )
+            );
+        } else {
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("types", completeQuery).subAggregation(
+                            AggregationBuilders.terms("types").field("titleType").size(100)
+                    )
+            );
+        }
+//        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
+        if (genre==null){
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("genres", QUERYPRUEBA).subAggregation(
+                            AggregationBuilders.terms("genres").field("genres").size(100)
+                    )
+            );
+        } else {
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("genres", completeQuery).subAggregation(
+                            AggregationBuilders.terms("genres").field("genres").size(100)
+                    )
+            );
+        }
         if (rangeAggregates!=null) aggregations.subAggregation(rangeAggregates);
 
 
         // CREATION OF FUNCTION SCORE QUERY //
+        List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query);
+        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders
+                .functionScoreQuery(completeQuery, functions.toArray(
+                        new FunctionScoreQueryBuilder.FilterFunctionBuilder[functions.size()]))
+                .scoreMode(FunctionScoreQuery.ScoreMode.SUM);
+        // Sets the query for the request and the aggregates
+        searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
+        searchRequest.source(searchSourceBuilder);
+
+        try {
+            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
+            return parseResponseWithAggregations(response);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ImdbResponse();
+    }
+
+
+    private List<FunctionScoreQueryBuilder.FilterFunctionBuilder> createScoreFunctions(String query){
         ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(10);
         ScoreFunctionBuilder functionWeightTvSeries = new WeightBuilder().setWeight(5);
         ScoreFunctionBuilder functionWeightShorts = new WeightBuilder().setWeight(3f);
@@ -134,24 +190,7 @@ public class ElasticSearchingModule implements SearchingModule {
             functions.add(new FunctionScoreQueryBuilder.FilterFunctionBuilder(
                     QueryBuilders.matchQuery("primaryTitle", query), new WeightBuilder().setWeight(40)));
         }
-
-
-        FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders
-                .functionScoreQuery(completeQuery, functions.toArray(
-                        new FunctionScoreQueryBuilder.FilterFunctionBuilder[functions.size()]))
-                .scoreMode(FunctionScoreQuery.ScoreMode.SUM);
-
-        searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
-        searchRequest.source(searchSourceBuilder);
-
-        try {
-            SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-            return parseResponseWithAggregations(response);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ImdbResponse();
+        return functions;
     }
 
     @Override
@@ -338,18 +377,22 @@ public class ElasticSearchingModule implements SearchingModule {
 
     private Map<String, Map<String, Long>> mapAggregations(ParsedFilter agg) {
         Map<String, Map<String, Long>> aggregations = new HashMap<>();
-        Terms typesBuckets = agg.getAggregations().get("types");
+        ParsedFilter aggTypes = agg.getAggregations().get("types");
+        Terms typesBuckets = aggTypes.getAggregations().get("types");
         Map<String, Long> types = new HashMap<>();
         for (Terms.Bucket bucket : typesBuckets.getBuckets()) {
             types.put(bucket.getKey().toString(), bucket.getDocCount());
         }
         aggregations.put("types", types);
-        Terms genresBuckets = agg.getAggregations().get("genres");
+
+        ParsedFilter aggGenres = agg.getAggregations().get("genres");
+        Terms genresBuckets = aggGenres.getAggregations().get("genres");
         Map<String, Long> genres = new HashMap<>();
         for (Terms.Bucket bucket : genresBuckets.getBuckets()) {
             genres.put(bucket.getKey().toString(), bucket.getDocCount());
         }
         aggregations.put("genres", genres);
+
         Range rangesBuckets = agg.getAggregations().get("dates");
         if (rangesBuckets!=null){
             Map<String, Long> dates = new HashMap<>();

@@ -32,14 +32,14 @@ public class SearchController {
     }
 
     //make this a lil more personal for each type of error/exception (with ExceptionHandler annotation)
-    @Error (global = true)
+   /* @Error (global = true)
     public HttpResponse<JsonError> error(HttpRequest request, Throwable e) {
         JsonError error = new JsonError("There's an error in what you're searching: " + e.getMessage())
                 .link(Link.SELF, Link.of(request.getUri()));
 
         return HttpResponse.<JsonError>serverError()
                 .body(error);
-    }
+    }*/
 
 
 }
