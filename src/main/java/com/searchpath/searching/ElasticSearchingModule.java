@@ -10,6 +10,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
+import org.elasticsearch.client.transform.transforms.pivot.DateHistogramGroupSource;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -21,6 +22,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -49,7 +52,7 @@ public class ElasticSearchingModule implements SearchingModule {
         searchRequest.indices("imdb");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
-        BoolQueryBuilder QUERYPRUEBA = QueryBuilders.boolQuery();
+        BoolQueryBuilder queryForFacetUpdates = QueryBuilders.boolQuery();
         BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
         if (query != null){
             //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
@@ -60,7 +63,7 @@ public class ElasticSearchingModule implements SearchingModule {
             //completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
             postFilters.filter((QueryBuilders.termsQuery("genres", genres)));
 
-            QUERYPRUEBA.filter(QueryBuilders.termsQuery("genres", genres));
+            queryForFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
 
         }
         if (type != null){
@@ -68,7 +71,7 @@ public class ElasticSearchingModule implements SearchingModule {
             //completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
             postFilters.filter((QueryBuilders.matchQuery("titleType", types)));
 
-            QUERYPRUEBA.filter(QueryBuilders.matchQuery("titleType", types));
+            queryForFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
 
         }
         if (year != null){
@@ -79,25 +82,13 @@ public class ElasticSearchingModule implements SearchingModule {
                 rangeDates = new RangeQueryBuilder("startYear").format("year");
                 String[] years = yearRanges[i].split("/");
                 int yearFrom = Integer.parseInt(years[0]);
-                int yearTo = Integer.parseInt(years[1])+1; //control the exceptions
-                rangeDates.gte(yearFrom);
-                rangeDates.lte(yearTo);
+                int yearTo = Integer.parseInt(years[1]);
+                rangeDates.gte(yearFrom); // greater than or equal to
+                rangeDates.lte(yearTo); // less tham or equal to
                 datesQuery.should(rangeDates);
-
-                /*boolean firstDecade = true;
-                for (int j = yearFrom; j < yearTo; j += 10){
-                    if (!firstDecade){
-                        rangeAggregates.addRange(j + "-" + (j+9), j, j+10);
-                    } else {
-                        rangeAggregates.addRange(j + "-" + (j + 10), j, j + 11);
-                        j++;
-                        firstDecade = false;
-                    }
-                }*/
             }
-            //completeQuery.filter(datesQuery);
-            QUERYPRUEBA.filter(datesQuery);
             postFilters.filter(datesQuery);
+            queryForFacetUpdates.filter(datesQuery);
         }
 
 
@@ -108,7 +99,7 @@ public class ElasticSearchingModule implements SearchingModule {
 //        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
         if (type==null){
             aggregations.subAggregation(
-                    AggregationBuilders.filter("types", QUERYPRUEBA).subAggregation(
+                    AggregationBuilders.filter("types", queryForFacetUpdates).subAggregation(
                             AggregationBuilders.terms("types").field("titleType").size(100)
                     )
             );
@@ -122,7 +113,7 @@ public class ElasticSearchingModule implements SearchingModule {
 //        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
         if (genre==null){
             aggregations.subAggregation(
-                    AggregationBuilders.filter("genres", QUERYPRUEBA).subAggregation(
+                    AggregationBuilders.filter("genres", queryForFacetUpdates).subAggregation(
                             AggregationBuilders.terms("genres").field("genres").size(100)
                     )
             );
@@ -147,19 +138,17 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         if (year==null) {
             aggregations.subAggregation(
-                    AggregationBuilders.filter("years", QUERYPRUEBA).subAggregation(
+                    AggregationBuilders.filter("years", queryForFacetUpdates).subAggregation(
                             rangeAggregates
                     )
             );
         } else {
-            //aggregations.subAggregation(rangeAggregates)
             aggregations.subAggregation(
                     AggregationBuilders.filter("years", completeQuery).subAggregation(
                             rangeAggregates
                     )
             );
         }
-
 
         // CREATION OF FUNCTION SCORE QUERY //
         List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query); // a separate method to encapsulate the functions' creation
@@ -174,13 +163,11 @@ public class ElasticSearchingModule implements SearchingModule {
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
             return parseResponseWithAggregations(response);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
         return new ImdbResponse();
     }
-
 
     private List<FunctionScoreQueryBuilder.FilterFunctionBuilder> createScoreFunctions(String query){
         ScoreFunctionBuilder functionWeightMovie = new WeightBuilder().setWeight(10);
@@ -429,8 +416,8 @@ public class ElasticSearchingModule implements SearchingModule {
         if (rangesBuckets!=null){
             Map<String, Long> dates = new HashMap<>();
             for (Range.Bucket bucket : rangesBuckets.getBuckets()){
-                System.out.println(bucket.getKey());
-                dates.put(bucket.getKey().toString(), bucket.getDocCount());
+               // System.out.println(bucket.getKey());
+                if (bucket.getDocCount() != 0) dates.put(bucket.getKey().toString(), bucket.getDocCount());
             }
             aggregations.put("year", dates);
         }
