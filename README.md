@@ -91,7 +91,7 @@ Queries will return a JSON response with the following fields:
 - `items`: list of retrieved items/entries. If the number of matches is greater than 10, then it'll only return the first 10 results. Each of these results will have the following fields:
     - `id` (string): the unique identifier of the title. Matches its index identifier
     - `title` (string): the (primary) title
-    - `genres` (array of strings): an array containing the different genres to which this title belongs
+    - `genres` (*optional*) (array of strings): an array containing the different genres to which this title belongs. If the title doesn't have any genre, then this field won't appear
     - `type` (string): the type of media this title is classified as
     - `start_year` (string, YYYY format): the year in which this title was released or, in the case of TV Series, the year in which it began broadcasting
     - `end_year` (string, YYYY format) (optional): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
@@ -100,7 +100,22 @@ Queries will return a JSON response with the following fields:
 - `aggregations`: list of different aggregations
     - `types`: total hits for each type of media present in the results
     - `genres`: total hits for each genre present in the results
-    - `dates` (optional): total hits for each decade in case the year parameter was specified *PENDING CHANGES*
+    - `year`: total hits for each decade in the results
+
+### Additional search: look for a certain title
+You can obtain information about a certain title if you know its id. For doing that, use the base URL http://localhost:8080/search/titles, and include the id of the title you're looking for as a path parameter, in the way http://localhost:8080/search/titles/:id. If no title with the given id is found, the response will be empty. Otherwise, the returned JSON will contain the following fields:
+
+- `id` (string): the unique identifier of the title. Matches its index identifier
+- `title` (string): the (primary) title
+- `original_title` (string): the original title of the movie (may differ from the primary title)
+- `genres` (*optional*) (array of strings): an array containing the different genres to which this title belongs. If the title doesn't have any genre, then this field won't appear
+- `type` (string): the type of media this title is classified as
+- `start_year` (string, YYYY format): the year in which this title was released or, in the case of TV Series, the year in which it began broadcasting
+- `end_year` (string, YYYY format) (optional): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
+- `average_rating` (double): the average rating this title has
+- `num_votes` (integer): the number of votes this title has received in order to compute the average rating
+- `runtime_minutes` (string): the length of the title in minutes
+- `is_adult` (boolean): indicates whether this title is for adults or not
 
 ### Query examples
 
@@ -108,6 +123,7 @@ Queries will return a JSON response with the following fields:
 - Searches for all documents whose title matches "Avengers": http://localhost:8080/search?query=Avengers
 - Searches for all action or adventure movies or TV Series whose title contains "Avengers" (notice it doesn't matter how you write the text for your queries): http://localhost:8080/search?query=Avengers&genre=Action,adveNture&type=movie,TVSERIES
 - Searches for all adventure movies and videogames released between 2000 and 2017: http://localhost:8080/search?&genre=adventure&type=movie,videoGame&year=2000/2017
+- Searches for the title with id tt1812523, and displays all the information about said title: http://localhost/search/titles/tt1812523
 
 **IMPORTANT:** If you try to search http://localhost:8080/search?query=, there will be no results returned. If you want all results, simply use the base query http://localhost:8080/search.
 
