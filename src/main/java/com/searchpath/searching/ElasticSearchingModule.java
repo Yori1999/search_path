@@ -30,10 +30,12 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Singleton
 public class ElasticSearchingModule implements SearchingModule {
@@ -69,9 +71,7 @@ public class ElasticSearchingModule implements SearchingModule {
             QUERYPRUEBA.filter(QueryBuilders.matchQuery("titleType", types));
 
         }
-        DateRangeAggregationBuilder rangeAggregates = null;
         if (year != null){
-            rangeAggregates = AggregationBuilders.dateRange("dates").field("startYear").format("yyyy");
             String[] yearRanges = year.replace(" ", "").split(","); //array of the different ranges
             BoolQueryBuilder datesQuery = QueryBuilders.boolQuery();
             RangeQueryBuilder rangeDates = null;
@@ -84,7 +84,7 @@ public class ElasticSearchingModule implements SearchingModule {
                 rangeDates.lte(yearTo);
                 datesQuery.should(rangeDates);
 
-                boolean firstDecade = true;
+                /*boolean firstDecade = true;
                 for (int j = yearFrom; j < yearTo; j += 10){
                     if (!firstDecade){
                         rangeAggregates.addRange(j + "-" + (j+9), j, j+10);
@@ -93,12 +93,14 @@ public class ElasticSearchingModule implements SearchingModule {
                         j++;
                         firstDecade = false;
                     }
-                }
+                }*/
             }
             //completeQuery.filter(datesQuery);
             QUERYPRUEBA.filter(datesQuery);
             postFilters.filter(datesQuery);
         }
+
+
         searchSourceBuilder.postFilter(postFilters);
 
         //BUILD AGGREGATES
@@ -131,9 +133,31 @@ public class ElasticSearchingModule implements SearchingModule {
                     )
             );
         }
-        if (rangeAggregates!=null) {
-                    aggregations.subAggregation(rangeAggregates);
-
+        DateRangeAggregationBuilder rangeAggregates =
+                AggregationBuilders.dateRange("year").field("startYear").format("yyyy");
+        boolean firstDecade = true;
+        for (int j = 1890; j < 2030; j += 10){
+            if (!firstDecade){
+                rangeAggregates.addRange(j + "-" + (j+9), j, j+10);
+            } else {
+                rangeAggregates.addRange(j + "-" + (j + 10), j, j + 11);
+                j++;
+                firstDecade = false;
+            }
+        }
+        if (year==null) {
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("years", QUERYPRUEBA).subAggregation(
+                            rangeAggregates
+                    )
+            );
+        } else {
+            //aggregations.subAggregation(rangeAggregates)
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("years", completeQuery).subAggregation(
+                            rangeAggregates
+                    )
+            );
         }
 
 
@@ -236,43 +260,45 @@ public class ElasticSearchingModule implements SearchingModule {
     }
 
     private ImdbObject parseImdbObject(SearchResponse response) {
-        SearchHit hit = response.getHits().getHits()[0];
-        Map<String, Object> sourceAsMap = hit.getSourceAsMap();
-        String id = (String) sourceAsMap.get("tconst");
-        String title = (String) sourceAsMap.get("primaryTitle");
-        String originalTitle = (String) sourceAsMap.get("originalTitle");
-        String[] genres = new String[0];
-        if (sourceAsMap.get("genres")!=null){
-            genres = ((String) sourceAsMap.get("genres")).split(",");
-        }
-        String type = (String) sourceAsMap.get("titleType");
-        String start_year;
-        try {
-            Integer.parseInt( (String) sourceAsMap.get("startYear") );
-            start_year = (String) sourceAsMap.get("startYear");
-        } catch (NumberFormatException e){
-            start_year = "";
-        }
-        String end_year;
-        try {
-            Integer.parseInt( (String)sourceAsMap.get("endYear") );
-            end_year = (String)sourceAsMap.get("endYear");
-        } catch (NumberFormatException e){
-            end_year = "";
-        }
-        Double averageRating = null;
-        if (sourceAsMap.get("averageRating") != null){
-            averageRating = (double)sourceAsMap.get("averageRating");
-        }
-        Integer numVotes = null;
-        if (sourceAsMap.get("numVotes") != null){
-            numVotes = (int)sourceAsMap.get("numVotes");
-        }
-        boolean isAdult = Integer.parseInt((String)sourceAsMap.get("isAdult"))==1;
-        String runtimeMinutes = (String) sourceAsMap.get("runtimeMinutes");
+        if (response.getHits().getHits().length != 0){
+            SearchHit hit = response.getHits().getHits()[0];
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            String id = (String) sourceAsMap.get("tconst");
+            String title = (String) sourceAsMap.get("primaryTitle");
+            String originalTitle = (String) sourceAsMap.get("originalTitle");
+            String[] genres = new String[0];
+            if (sourceAsMap.get("genres")!=null){
+                genres = ((String) sourceAsMap.get("genres")).split(",");
+            }
+            String type = (String) sourceAsMap.get("titleType");
+            String start_year;
+            try {
+                Integer.parseInt( (String) sourceAsMap.get("startYear") );
+                start_year = (String) sourceAsMap.get("startYear");
+            } catch (NumberFormatException e){
+                start_year = "";
+            }
+            String end_year;
+            try {
+                Integer.parseInt( (String)sourceAsMap.get("endYear") );
+                end_year = (String)sourceAsMap.get("endYear");
+            } catch (NumberFormatException e){
+                end_year = "";
+            }
+            Double averageRating = null;
+            if (sourceAsMap.get("averageRating") != null){
+                averageRating = (double)sourceAsMap.get("averageRating");
+            }
+            Integer numVotes = null;
+            if (sourceAsMap.get("numVotes") != null){
+                numVotes = (int)sourceAsMap.get("numVotes");
+            }
+            boolean isAdult = Integer.parseInt((String)sourceAsMap.get("isAdult"))==1;
+            String runtimeMinutes = (String) sourceAsMap.get("runtimeMinutes");
 
-        return new ImdbObject(id, title, originalTitle, genres, type, start_year, end_year, averageRating, numVotes, runtimeMinutes, isAdult);
-
+            return new ImdbObject(id, title, originalTitle, genres, type, start_year, end_year, averageRating, numVotes, runtimeMinutes, isAdult);
+        }
+        return new ImdbObject();
     }
 
     @Override
@@ -398,14 +424,15 @@ public class ElasticSearchingModule implements SearchingModule {
         }
         aggregations.put("genres", genres);
 
-        Range rangesBuckets = agg.getAggregations().get("dates");
+        ParsedFilter aggYears = agg.getAggregations().get("years");
+        Range rangesBuckets = aggYears.getAggregations().get("year");
         if (rangesBuckets!=null){
             Map<String, Long> dates = new HashMap<>();
             for (Range.Bucket bucket : rangesBuckets.getBuckets()){
                 System.out.println(bucket.getKey());
                 dates.put(bucket.getKey().toString(), bucket.getDocCount());
             }
-            aggregations.put("dates", dates);
+            aggregations.put("year", dates);
         }
         return aggregations;
     }
