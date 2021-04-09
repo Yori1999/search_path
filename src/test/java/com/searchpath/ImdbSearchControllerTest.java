@@ -20,12 +20,12 @@ public class ImdbSearchControllerTest {
     //Collection of tests for checking the returned items when searching
 
     @Test
-    public void testSearch() {
+    public void testSearchAll() {
         //With no query parameter
         HttpRequest<String> request = HttpRequest.GET("/search");
         ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
-        Assertions.assertTrue(imdbResponse.getTotal() > 0); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
         Assertions.assertTrue(imdbResponse.getItems() != null);
 
         //With empty query parameter
@@ -62,7 +62,59 @@ public class ImdbSearchControllerTest {
         Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
     }
 
-    //Test search
+    @Test
+    public void testSearchByTitle(){
 
+    }
+
+    @Test
+    public void testSearchByType(){
+
+    }
+
+    @Test
+    public void testSearchByGenre(){
+
+    }
+
+    @Test
+    public void testSearchByYear(){
+
+    }
+
+    @Test
+    public void testSearchByYearWrongDateFormat(){
+        //with from year being less than until year
+    }
+
+    @Test
+    public void testSearchByIdExists(){
+
+    }
+
+    @Test
+    public void testSearchByIdNotExists(){
+
+    }
+
+    @Test
+    public void testSearchByTitleAndType() {
+
+    }
+
+    @Test
+    public void testSearchByTitleAndGenre(){
+
+    }
+
+    @Test
+    public void testSearchByTitleAndYear(){
+
+    }
+
+    @Test
+    public void testSearchByTitleTypeGenreAndYear(){
+
+    }
 
 }

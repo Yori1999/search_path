@@ -94,7 +94,7 @@ Queries will return a JSON response with the following fields:
     - `genres` (*optional*) (array of strings): an array containing the different genres to which this title belongs. If the title doesn't have any genre, then this field won't appear
     - `type` (string): the type of media this title is classified as
     - `start_year` (string, YYYY format): the year in which this title was released or, in the case of TV Series, the year in which it began broadcasting
-    - `end_year` (string, YYYY format) (optional): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
+    - `end_year` (*optional*) (string, YYYY format): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
     - `average_rating` (double): the average rating this title has
     - `num_votes` (integer): the number of votes this title has received in order to compute the average rating
 - `aggregations`: list of different aggregations
@@ -111,7 +111,7 @@ You can obtain information about a certain title if you know its id. For doing t
 - `genres` (*optional*) (array of strings): an array containing the different genres to which this title belongs. If the title doesn't have any genre, then this field won't appear
 - `type` (string): the type of media this title is classified as
 - `start_year` (string, YYYY format): the year in which this title was released or, in the case of TV Series, the year in which it began broadcasting
-- `end_year` (string, YYYY format) (optional): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
+- `end_year` (*optional*) (string, YYYY format): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
 - `average_rating` (double): the average rating this title has
 - `num_votes` (integer): the number of votes this title has received in order to compute the average rating
 - `runtime_minutes` (string): the length of the title in minutes
