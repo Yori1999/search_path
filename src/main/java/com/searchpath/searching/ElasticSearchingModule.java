@@ -34,10 +34,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.time.Year;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -54,7 +51,7 @@ public class ElasticSearchingModule implements SearchingModule {
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
         BoolQueryBuilder queryForFacetUpdates = QueryBuilders.boolQuery();
         BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
-        if (query != null){
+        if (query != null && !"".equals(query)){
             //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
             completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
         }
@@ -397,7 +394,7 @@ public class ElasticSearchingModule implements SearchingModule {
         Map<String, Map<String, Long>> aggregations = new HashMap<>();
         ParsedFilter aggTypes = agg.getAggregations().get("types");
         Terms typesBuckets = aggTypes.getAggregations().get("types");
-        Map<String, Long> types = new HashMap<>();
+        SortedMap<String, Long> types = new TreeMap<>();
         for (Terms.Bucket bucket : typesBuckets.getBuckets()) {
             types.put(bucket.getKey().toString(), bucket.getDocCount());
         }
@@ -405,7 +402,7 @@ public class ElasticSearchingModule implements SearchingModule {
 
         ParsedFilter aggGenres = agg.getAggregations().get("genres");
         Terms genresBuckets = aggGenres.getAggregations().get("genres");
-        Map<String, Long> genres = new HashMap<>();
+        SortedMap<String, Long> genres = new TreeMap<>();
         for (Terms.Bucket bucket : genresBuckets.getBuckets()) {
             genres.put(bucket.getKey().toString(), bucket.getDocCount());
         }
@@ -414,9 +411,8 @@ public class ElasticSearchingModule implements SearchingModule {
         ParsedFilter aggYears = agg.getAggregations().get("years");
         Range rangesBuckets = aggYears.getAggregations().get("year");
         if (rangesBuckets!=null){
-            Map<String, Long> dates = new HashMap<>();
+            SortedMap<String, Long> dates = new TreeMap<>(Collections.reverseOrder());
             for (Range.Bucket bucket : rangesBuckets.getBuckets()){
-               // System.out.println(bucket.getKey());
                 if (bucket.getDocCount() != 0) dates.put(bucket.getKey().toString(), bucket.getDocCount());
             }
             aggregations.put("year", dates);

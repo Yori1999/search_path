@@ -19,8 +19,8 @@ public class SearchController {
 
     @Inject @Named("Elastic") SearchingModule searchModule;
 
-    @Get(value = "{?query,genre,type,year}")
-    public ImdbResponse index(@QueryValue("query") @Nullable String query, @QueryValue("genre") @Nullable String genre,
+    @Get(value = "{?query,genres,type,year}")
+    public ImdbResponse index(@QueryValue("query") @Nullable String query, @QueryValue("genres") @Nullable String genre,
                               @QueryValue("type") @Nullable String type, @QueryValue("year") @Nullable String year) {
 
        return searchModule.processQuery(query, genre, type, year); //returns directly the response type, not an HTTPResponse

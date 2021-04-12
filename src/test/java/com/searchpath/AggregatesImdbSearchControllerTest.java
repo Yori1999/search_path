@@ -159,7 +159,7 @@ public class AggregatesImdbSearchControllerTest {
 
         //Pass a genre parameter
         //Fixes the facet for type, so that facet will show all possible genres for titles that match the query
-        request = HttpRequest.GET("/search?query=Avengers&genre=comedy");
+        request = HttpRequest.GET("/search?query=Avengers&genres=comedy");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
         Assertions.assertEquals(354, imdbResponse.getTotal());
@@ -173,7 +173,7 @@ public class AggregatesImdbSearchControllerTest {
         Assertions.assertTrue(map.get("types").size() == 8);
         Assertions.assertTrue(map.containsKey("year"));
         Assertions.assertTrue(map.get("year").size() == 5);
-        request = HttpRequest.GET("/search?query=Avengers&genre=comedy,action");
+        request = HttpRequest.GET("/search?query=Avengers&genres=comedy,action");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
         Assertions.assertEquals(437, imdbResponse.getTotal());
@@ -204,7 +204,7 @@ public class AggregatesImdbSearchControllerTest {
         Assertions.assertTrue(map.get("year").size() == 8);
 
         //Fix another filter + the genre
-        request = HttpRequest.GET("/search?query=Avengers&type=movie&genre=comedy");
+        request = HttpRequest.GET("/search?query=Avengers&type=movie&genres=comedy");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
         Assertions.assertEquals(5, imdbResponse.getTotal());
@@ -271,7 +271,7 @@ public class AggregatesImdbSearchControllerTest {
 
     @Test
     public void testAggregationsSearchTitleGenresTypeYear() {
-        HttpRequest<String> request = HttpRequest.GET("/search?query=Tron&type=videoGame&genre=sci-fi,action,adventure&year=1970/2020");
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Tron&type=videoGame&genres=sci-fi,action,adventure&year=1970/2020");
         ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
         Assertions.assertEquals(13, imdbResponse.getTotal());

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.Locale;
 
 @MicronautTest
@@ -52,7 +53,22 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByType(){
+        //With query parameter indicating a certain type
+        //With only one type
+        HttpRequest<String> request = HttpRequest.GET("/search?type=tvspecial");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( tvSpec -> Assertions.assertTrue("tvSpecial".equals(tvSpec.getType())));
 
+        //With several types
+        request = HttpRequest.GET("/search?type=tvmovie,short");
+        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( tvSpec -> Assertions.assertTrue("tvMovie".equals(tvSpec.getType()) || "short".equals(tvSpec.getType())));
     }
 
     @Test
@@ -67,7 +83,11 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByYearWrongDateFormat(){
-        //with from year being less than until year
+        //This doesn't get an error response, but obviously there's no match
+        HttpRequest<String> request = HttpRequest.GET("/search?year=2010/2000");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() == 0);
+        Assertions.assertTrue(imdbResponse.getItems() == null);
     }
 
     @Test
