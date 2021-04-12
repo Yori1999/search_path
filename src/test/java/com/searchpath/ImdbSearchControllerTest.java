@@ -1,5 +1,6 @@
 package com.searchpath;
 
+import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.RxHttpClient;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
+import java.util.Locale;
 
 @MicronautTest
 public class ImdbSearchControllerTest {
@@ -28,43 +30,24 @@ public class ImdbSearchControllerTest {
         Assertions.assertTrue(imdbResponse.getTotal() > 0);
         Assertions.assertTrue(imdbResponse.getItems() != null);
 
-        //With empty query parameter
+        //With empty query parameter. Works as if the query was null -> better integration with frontend
         request = HttpRequest.GET("/search?query=");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertNotNull(imdbResponse);
-        Assertions.assertEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
-        Assertions.assertEquals(null, imdbResponse.getItems());
-
-        //With query parameter indicating a certain movie
-        request = HttpRequest.GET("/search?query=Spiderman");
-        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
-        Assertions.assertNotNull(imdbResponse);
-        Assertions.assertNotEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
-        Assertions.assertNotEquals(null, imdbResponse.getItems());
-        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
-
-        //With query parameter indicating a certain movie
-        request = HttpRequest.GET("/search?query=Avengers");
-        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
-        Assertions.assertNotNull(imdbResponse);
-        Assertions.assertNotEquals(0, imdbResponse.getTotal()); //right now it doesn't find anything, maybe in the future should retrieve everything? With a wildcard??
-        Assertions.assertNotEquals(null, imdbResponse.getItems());
-        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
-        Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType()); //if we search by title
-
-        //With query parameter indicating a certain movie and specifying we want a movie
-        request = HttpRequest.GET("/search?query=Avengers&type=movie");
-        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
-        Assertions.assertNotNull(imdbResponse);
-        Assertions.assertNotEquals(0, imdbResponse.getTotal());
-        Assertions.assertNotEquals(null, imdbResponse.getItems());
-        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
-        Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
     }
 
     @Test
     public void testSearchByTitle(){
-
+        //With query parameter indicating a certain movie
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Avengers");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Assertions.assertTrue(imdbResponse.getItems()[0].getTitle().toLowerCase(Locale.ROOT).contains("avengers"));
+        Assertions.assertEquals("movie", imdbResponse.getItems()[0].getType());
     }
 
     @Test
@@ -89,12 +72,28 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByIdExists(){
-
+        HttpRequest<String> request = HttpRequest.GET("/titles/tt0084881");
+        ImdbObject movie = client.toBlocking().retrieve(request, ImdbObject.class);
+        Assertions.assertNotNull(movie);
+        Assertions.assertTrue(movie.getTitle().equals("Arcadia of My Youth"));
     }
 
     @Test
     public void testSearchByIdNotExists(){
-
+        HttpRequest<String> request = HttpRequest.GET("/titles/tt0084e");
+        ImdbObject movie = client.toBlocking().retrieve(request, ImdbObject.class);
+        Assertions.assertNotNull(movie); //The object itself is not null, it's just completely empty
+        //All the fields are set to null
+        Assertions.assertTrue(movie.getId() == null);
+        Assertions.assertTrue(movie.getTitle() == null);
+        Assertions.assertTrue(movie.getOriginal_title() == null);
+        Assertions.assertTrue(movie.getType() == null);
+        Assertions.assertTrue(movie.getGenres() == null);
+        Assertions.assertTrue(movie.getStart_year() == null);
+        Assertions.assertTrue(movie.getEnd_year() == null);
+        Assertions.assertTrue(movie.getRuntime_minutes() == null);
+        Assertions.assertTrue(movie.getNum_votes() == null);
+        Assertions.assertTrue(movie.getAverage_rating() == null);
     }
 
     @Test
