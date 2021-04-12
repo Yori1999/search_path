@@ -54,11 +54,9 @@ public class ElasticSearchingModule implements SearchingModule {
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
         BoolQueryBuilder queryForFacetUpdates = QueryBuilders.boolQuery();
         BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
-        if (query != null) {
-            if (!"".equals(query)) {
-                //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
-                completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
-            }
+        if (query != null){
+            //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
+            completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
