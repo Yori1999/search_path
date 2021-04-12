@@ -81,7 +81,7 @@ All parameters we're going to describe in this section are optional. Basically, 
 | Parameter | Description | Format | Basic Example |  "Complex" example |
 | :--- | :--- | :--- | :--- | :--- |
 | query | Title or original title (looks in both fields) of the media | \<string\> | Tron | Avengers Age of Ultron |
-| genre | Comma separated list of genres. For an entry to match, at least one of its genres must be one of the specified ones | \<string\>[,\<string\>]* | Adventure | adventure,action,drama |
+| genres | Comma separated list of genres. For an entry to match, at least one of its genres must be one of the specified ones | \<string\>[,\<string\>]* | Adventure | adventure,action,drama |
 | type | Comma separated list of types. For an entry to match, its type must be one of the specified ones | \<string\>[,\<string\>]* | movie | movie,videogame |
 | year | Comma separated list of year ranges. For an entry to match, it must have been released (startYear) during one of those periods of time | \<YYYY\>/\<YYYY\>[,\<YYYY\>/\<YYYY\>]* | 2000/2010 | 2000/2010,2012/2017 |
 
@@ -103,7 +103,7 @@ Queries will return a JSON response with the following fields:
     - `year`: total hits for each decade in the results
 
 ### Additional search: look for a certain title
-You can obtain information about a certain title if you know its id. For doing that, use the base URL http://localhost:8080/search/titles, and include the id of the title you're looking for as a path parameter, in the way http://localhost:8080/search/titles/:id. If no title with the given id is found, the response will be empty. Otherwise, the returned JSON will contain the following fields:
+You can obtain information about a certain title if you know its id. For doing that, use the base URL http://localhost:8080/titles, and include the id of the title you're looking for as a path parameter, in the way http://localhost:8080/titles/:id. If no title with the given id is found, the response will be empty. Otherwise, the returned JSON will contain the following fields:
 
 - `id` (string): the unique identifier of the title. Matches its index identifier
 - `title` (string): the (primary) title
@@ -121,9 +121,9 @@ You can obtain information about a certain title if you know its id. For doing t
 
 - Searches for all results: http://localhost:8080/search
 - Searches for all documents whose title matches "Avengers": http://localhost:8080/search?query=Avengers
-- Searches for all action or adventure movies or TV Series whose title contains "Avengers" (notice it doesn't matter how you write the text for your queries): http://localhost:8080/search?query=Avengers&genre=Action,adveNture&type=movie,TVSERIES
-- Searches for all adventure movies and videogames released between 2000 and 2017: http://localhost:8080/search?&genre=adventure&type=movie,videoGame&year=2000/2017
-- Searches for the title with id tt1812523, and displays all the information about said title: http://localhost/search/titles/tt1812523
+- Searches for all action or adventure movies or TV Series whose title contains "Avengers" (notice it doesn't matter how you write the text for your queries): http://localhost:8080/search?query=Avengers&genres=Action,adveNture&type=movie,TVSERIES
+- Searches for all adventure movies and videogames released between 2000 and 2017: http://localhost:8080/search?&genres=adventure&type=movie,videoGame&year=2000/2017
+- Searches for the title with id tt1812523, and displays all the information about said title: http://localhost/titles/tt1812523
 
 **IMPORTANT:** If you try to search http://localhost:8080/search?query=, there will be no results returned. If you want all results, simply use the base query http://localhost:8080/search.
 

@@ -390,6 +390,9 @@ public class ElasticSearchingModule implements SearchingModule {
         return new ImdbResponse(total, films.toArray(items), null);
     }
 
+    //Maps the aggregations returned by ElasticSearch into a map which has entries for types, genres and years
+    //The map will have 3 entries (types, genres, years) and the value for each key will be a map containing an
+    //entry for each corresponding bucket and the number of results of that bucket
     private Map<String, Map<String, Long>> mapAggregations(ParsedFilter agg) {
         Map<String, Map<String, Long>> aggregations = new HashMap<>();
         ParsedFilter aggTypes = agg.getAggregations().get("types");
