@@ -53,6 +53,12 @@ public class ElasticSearchingModule implements SearchingModule {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
         BoolQueryBuilder queryForFacetUpdates = QueryBuilders.boolQuery();
+
+        BoolQueryBuilder queryForGenresFacetUpdate = QueryBuilders.boolQuery();
+        BoolQueryBuilder queryForTypesFacetUpdate = QueryBuilders.boolQuery();
+        BoolQueryBuilder queryForYearFacetUpdates = QueryBuilders.boolQuery();
+
+
         BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
         if (query != null && !"".equals(query)){
             //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
@@ -63,16 +69,18 @@ public class ElasticSearchingModule implements SearchingModule {
             //completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
             postFilters.filter((QueryBuilders.termsQuery("genres", genres)));
 
-            queryForFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
-
+           // queryForFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
+            queryForTypesFacetUpdate.filter(QueryBuilders.termsQuery("genres", genres));
+            queryForYearFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
         }
         if (type != null){
             String types = type.replace(" ", "").replace(",", " ");
             //completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
             postFilters.filter((QueryBuilders.matchQuery("titleType", types)));
 
-            queryForFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
-
+          //  queryForFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
+            queryForGenresFacetUpdate.filter(QueryBuilders.matchQuery("titleType", types));
+            queryForYearFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
         }
         if (year != null){
             String[] yearRanges = year.replace(" ", "").split(","); //array of the different ranges
@@ -88,42 +96,48 @@ public class ElasticSearchingModule implements SearchingModule {
                 datesQuery.should(rangeDates);
             }
             postFilters.filter(datesQuery);
-            queryForFacetUpdates.filter(datesQuery);
+            //queryForFacetUpdates.filter(datesQuery);
+            queryForGenresFacetUpdate.filter(datesQuery);
+            queryForTypesFacetUpdate.filter(datesQuery);
         }
-
 
         searchSourceBuilder.postFilter(postFilters);
 
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
 //        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
-        if (type==null){
+        /*if (type==null){
             aggregations.subAggregation(
                     AggregationBuilders.filter("types", queryForFacetUpdates).subAggregation(
                             AggregationBuilders.terms("types").field("titleType").size(100)
                     )
             );
+
         } else {
             aggregations.subAggregation(
                     AggregationBuilders.filter("types", completeQuery).subAggregation(
                             AggregationBuilders.terms("types").field("titleType").size(100)
                     )
             );
-        }
+        }*/
+
+
 //        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
-        if (genre==null){
+        /*if (genre==null){
             aggregations.subAggregation(
                     AggregationBuilders.filter("genres", queryForFacetUpdates).subAggregation(
                             AggregationBuilders.terms("genres").field("genres").size(100)
                     )
             );
+
         } else {
             aggregations.subAggregation(
                     AggregationBuilders.filter("genres", completeQuery).subAggregation(
                             AggregationBuilders.terms("genres").field("genres").size(100)
                     )
             );
-        }
+        }*/
+
         DateRangeAggregationBuilder rangeAggregates =
                 AggregationBuilders.dateRange("year").field("startYear").format("yyyy");
         boolean firstDecade = true;
@@ -136,19 +150,53 @@ public class ElasticSearchingModule implements SearchingModule {
                 firstDecade = false;
             }
         }
-        if (year==null) {
+        /*if (year==null) {
             aggregations.subAggregation(
                     AggregationBuilders.filter("years", queryForFacetUpdates).subAggregation(
                             rangeAggregates
                     )
             );
+
         } else {
             aggregations.subAggregation(
                     AggregationBuilders.filter("years", completeQuery).subAggregation(
                             rangeAggregates
                     )
             );
-        }
+        }*/
+        //if (query==null){
+         /*   aggregations.subAggregation(
+                    AggregationBuilders.filter("types", completeQuery).subAggregation(
+                            AggregationBuilders.terms("types").field("titleType").size(100)
+                    )
+            );
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("genres", completeQuery).subAggregation(
+                            AggregationBuilders.terms("genres").field("genres").size(100)
+                    )
+            );
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("years", completeQuery).subAggregation(
+                            rangeAggregates
+                    )
+            );*/
+        //} else {
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("types", queryForTypesFacetUpdate).subAggregation(
+                            AggregationBuilders.terms("types").field("titleType").size(100)
+                    )
+            );
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("genres", queryForGenresFacetUpdate).subAggregation(
+                            AggregationBuilders.terms("genres").field("genres").size(100)
+                    )
+            );
+            aggregations.subAggregation(
+                    AggregationBuilders.filter("years", queryForYearFacetUpdates).subAggregation(
+                            rangeAggregates
+                    )
+            );
+       // }
 
         // CREATION OF FUNCTION SCORE QUERY //
         List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query); // a separate method to encapsulate the functions' creation
@@ -159,19 +207,18 @@ public class ElasticSearchingModule implements SearchingModule {
         // Sets the query for the request and the aggregates
         searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
 
-        searchSourceBuilder.suggest(new SuggestBuilder()
-                        .addSuggestion("suggestions",
+        //For suggesting possible related terms whenever the search is made
+        if (query!=null){
+             searchSourceBuilder.suggest(new SuggestBuilder().addSuggestion("suggestions",
                                 SuggestBuilders.phraseSuggestion("primaryTitle").text(query)));
-
+        }
 
         searchRequest.source(searchSourceBuilder);
-
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
-
-            response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
-
-
+            //Prints suggestions. Just for testing
+            if (response.getSuggest()!=null)
+                response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
             return parseResponseWithAggregations(response);
         } catch (IOException e) {
             e.printStackTrace();
