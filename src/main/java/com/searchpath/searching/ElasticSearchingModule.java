@@ -28,6 +28,9 @@ import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBu
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.SuggestionBuilder;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -155,10 +158,20 @@ public class ElasticSearchingModule implements SearchingModule {
                 .scoreMode(FunctionScoreQuery.ScoreMode.SUM);
         // Sets the query for the request and the aggregates
         searchSourceBuilder.query(functionScoreQuery).aggregation(aggregations);
+
+        searchSourceBuilder.suggest(new SuggestBuilder()
+                        .addSuggestion("suggestions",
+                                SuggestBuilders.phraseSuggestion("primaryTitle").text(query)));
+
+
         searchRequest.source(searchSourceBuilder);
 
         try {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
+
+            response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
+
+
             return parseResponseWithAggregations(response);
         } catch (IOException e) {
             e.printStackTrace();
