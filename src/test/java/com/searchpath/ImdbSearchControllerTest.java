@@ -78,7 +78,26 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByYear(){
+        //With query parameter indicating a certain range of years
+        //With only one range
+        HttpRequest<String> request = HttpRequest.GET("/search?year=1870/1880");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(3, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(
+                m -> Assertions.assertTrue(Integer.parseInt(m.getStart_year()) >= 1870 && Integer.parseInt(m.getStart_year()) <= 1880 )
+        );
 
+        //With several ranges
+        request = HttpRequest.GET("/search?year=1870/1878,1880/1885");
+        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(6, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(
+                m -> Assertions.assertTrue(Integer.parseInt(m.getStart_year()) >= 1870 && Integer.parseInt(m.getStart_year()) <= 1885 )
+        );
     }
 
     @Test

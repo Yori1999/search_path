@@ -1,6 +1,5 @@
 package com.searchpath.searching;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.searchpath.ClientFactory;
 import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
@@ -10,7 +9,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
-import org.elasticsearch.client.transform.transforms.pivot.DateHistogramGroupSource;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -22,23 +20,16 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
-import org.elasticsearch.search.suggest.SuggestionBuilder;
-
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
-import java.time.Year;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Singleton
 public class ElasticSearchingModule implements SearchingModule {
@@ -52,8 +43,7 @@ public class ElasticSearchingModule implements SearchingModule {
         searchRequest.indices("imdb");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder completeQuery = QueryBuilders.boolQuery();
-        BoolQueryBuilder queryForFacetUpdates = QueryBuilders.boolQuery();
-
+        //Queries for making sure the facets are filtered ok
         BoolQueryBuilder queryForGenresFacetUpdate = QueryBuilders.boolQuery();
         BoolQueryBuilder queryForTypesFacetUpdate = QueryBuilders.boolQuery();
         BoolQueryBuilder queryForYearFacetUpdates = QueryBuilders.boolQuery();
@@ -61,24 +51,17 @@ public class ElasticSearchingModule implements SearchingModule {
 
         BoolQueryBuilder postFilters = QueryBuilders.boolQuery();
         if (query != null && !"".equals(query)){
-            //completeQuery.must(QueryBuilders.multiMatchQuery(query, "originalTitle", "primaryTitle").type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
             completeQuery.must(QueryBuilders.multiMatchQuery(query).field("originalTitle", 2).field("primaryTitle", 5).type(MultiMatchQueryBuilder.Type.BEST_FIELDS));
         }
         if (genre != null){
             String[] genres = genre.replace(" ", "").split(",");
-            //completeQuery.filter(QueryBuilders.termsQuery("genres", genres));
             postFilters.filter((QueryBuilders.termsQuery("genres", genres)));
-
-           // queryForFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
             queryForTypesFacetUpdate.filter(QueryBuilders.termsQuery("genres", genres));
             queryForYearFacetUpdates.filter(QueryBuilders.termsQuery("genres", genres));
         }
         if (type != null){
             String types = type.replace(" ", "").replace(",", " ");
-            //completeQuery.filter(QueryBuilders.matchQuery("titleType", types));
             postFilters.filter((QueryBuilders.matchQuery("titleType", types)));
-
-          //  queryForFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
             queryForGenresFacetUpdate.filter(QueryBuilders.matchQuery("titleType", types));
             queryForYearFacetUpdates.filter(QueryBuilders.matchQuery("titleType", types));
         }
@@ -105,43 +88,10 @@ public class ElasticSearchingModule implements SearchingModule {
 
         //BUILD AGGREGATES
         AggregationBuilder aggregations = AggregationBuilders.filter("agg", completeQuery);
-//        aggregations.subAggregation(AggregationBuilders.terms("types").field("titleType").size(100));
-        /*if (type==null){
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("types", queryForFacetUpdates).subAggregation(
-                            AggregationBuilders.terms("types").field("titleType").size(100)
-                    )
-            );
-
-        } else {
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("types", completeQuery).subAggregation(
-                            AggregationBuilders.terms("types").field("titleType").size(100)
-                    )
-            );
-        }*/
-
-
-//        aggregations.subAggregation(AggregationBuilders.terms("genres").field("genres").size(100));
-        /*if (genre==null){
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("genres", queryForFacetUpdates).subAggregation(
-                            AggregationBuilders.terms("genres").field("genres").size(100)
-                    )
-            );
-
-        } else {
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("genres", completeQuery).subAggregation(
-                            AggregationBuilders.terms("genres").field("genres").size(100)
-                    )
-            );
-        }*/
-
         DateRangeAggregationBuilder rangeAggregates =
                 AggregationBuilders.dateRange("year").field("startYear").format("yyyy");
         boolean firstDecade = true;
-        for (int j = 1890; j < 2030; j += 10){
+        for (int j = 1870; j < 2030; j += 10){
             if (!firstDecade){
                 rangeAggregates.addRange(j + "-" + (j+9), j, j+10);
             } else {
@@ -150,53 +100,21 @@ public class ElasticSearchingModule implements SearchingModule {
                 firstDecade = false;
             }
         }
-        /*if (year==null) {
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("years", queryForFacetUpdates).subAggregation(
-                            rangeAggregates
-                    )
-            );
-
-        } else {
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("years", completeQuery).subAggregation(
-                            rangeAggregates
-                    )
-            );
-        }*/
-        //if (query==null){
-         /*   aggregations.subAggregation(
-                    AggregationBuilders.filter("types", completeQuery).subAggregation(
-                            AggregationBuilders.terms("types").field("titleType").size(100)
-                    )
-            );
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("genres", completeQuery).subAggregation(
-                            AggregationBuilders.terms("genres").field("genres").size(100)
-                    )
-            );
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("years", completeQuery).subAggregation(
-                            rangeAggregates
-                    )
-            );*/
-        //} else {
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("types", queryForTypesFacetUpdate).subAggregation(
-                            AggregationBuilders.terms("types").field("titleType").size(100)
-                    )
-            );
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("genres", queryForGenresFacetUpdate).subAggregation(
-                            AggregationBuilders.terms("genres").field("genres").size(100)
-                    )
-            );
-            aggregations.subAggregation(
-                    AggregationBuilders.filter("years", queryForYearFacetUpdates).subAggregation(
-                            rangeAggregates
-                    )
-            );
-       // }
+        aggregations.subAggregation(
+                AggregationBuilders.filter("types", queryForTypesFacetUpdate).subAggregation(
+                        AggregationBuilders.terms("types").field("titleType").size(100)
+                )
+        );
+        aggregations.subAggregation(
+                AggregationBuilders.filter("genres", queryForGenresFacetUpdate).subAggregation(
+                        AggregationBuilders.terms("genres").field("genres").size(100)
+                )
+        );
+        aggregations.subAggregation(
+                AggregationBuilders.filter("years", queryForYearFacetUpdates).subAggregation(
+                        rangeAggregates
+                )
+        );
 
         // CREATION OF FUNCTION SCORE QUERY //
         List<FunctionScoreQueryBuilder.FilterFunctionBuilder> functions = createScoreFunctions(query); // a separate method to encapsulate the functions' creation

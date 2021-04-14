@@ -101,48 +101,6 @@ public class ImdbBulkIndexer implements Indexer {
         System.out.println("FINISHED INDEXING PROCESS");
     }
 
-   /* @Override
-    public void index(String filename, String separator) {
-        //Gets all the movies with their corresponding ratings' information if they have it available
-        List<ImdbDocument> filmList = fileParser.parseFilms("src/main/resources/" + filename, separator);
-        int filmListSize = filmList.size();
-
-        RestHighLevelClient client = clientFactory.getClient();
-
-        ///// CREATE THE INDEX
-        try {
-            createIndex(client);
-            System.out.println("Index creation complete");
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-        //INDEX IN BULKS
-        int processSize = 20000;
-        int counter = 0;
-        ImdbDocument film; Map<String, Object> jsonMap;
-        BulkRequest bulk = new BulkRequest();
-        for (int i = 0; i < filmListSize; i++){
-            counter++;
-            System.out.println(counter);
-            film = filmList.get(i);
-            jsonMap = jsonMappingWithRatings(film.getTconst(), film.getTitleType(), film.getPrimaryTitle(), film.getOriginalTitle(),
-                    film.getIsAdult(), film.getStart_year(), film.getEnd_year(), film.getRuntimeMinutes(), film.getGenres(),
-                    film.getAverageRating(), film.getNumVotes());
-            bulk.add(new IndexRequest("imdb").id(film.getTconst()).source(jsonMap));
-            if ( counter == processSize || i == filmListSize-1){
-                try {
-                    client.bulk(bulk, RequestOptions.DEFAULT);
-
-                } catch (IOException e){
-                    e.printStackTrace(); //Just to test
-                }
-                bulk.requests().clear();
-                counter = 0;
-            }
-        }
-        System.out.println("FINISHED INDEXING PROCESS");
-    }*/
-
     @Override
     public void updateIndex() throws IOException {
         Map<String, double[]> ratings = fileParser.parseRatings("src/main/resources/dataRatings.tsv", "\t");
