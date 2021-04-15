@@ -4,6 +4,7 @@ import com.searchpath.ClientFactory;
 import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
 import com.searchpath.entities.Message;
+import org.apache.lucene.search.spell.SuggestMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -26,6 +27,10 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.phrase.DirectCandidateGenerator;
+import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
+import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -79,7 +84,6 @@ public class ElasticSearchingModule implements SearchingModule {
                 datesQuery.should(rangeDates);
             }
             postFilters.filter(datesQuery);
-            //queryForFacetUpdates.filter(datesQuery);
             queryForGenresFacetUpdate.filter(datesQuery);
             queryForTypesFacetUpdate.filter(datesQuery);
         }
@@ -127,8 +131,11 @@ public class ElasticSearchingModule implements SearchingModule {
 
         //For suggesting possible related terms whenever the search is made
         if (query!=null){
-             searchSourceBuilder.suggest(new SuggestBuilder().addSuggestion("suggestions",
-                                SuggestBuilders.phraseSuggestion("primaryTitle").text(query)));
+             searchSourceBuilder.suggest(new SuggestBuilder()
+                     .addSuggestion("suggestions", SuggestBuilders.phraseSuggestion("primaryTitle")
+                             .text(query).addCandidateGenerator(
+                                     new DirectCandidateGeneratorBuilder("primaryTitle").suggestMode("popular"))
+                             .size(10)));
         }
 
         searchRequest.source(searchSourceBuilder);
@@ -332,7 +339,11 @@ public class ElasticSearchingModule implements SearchingModule {
             films.add(new ImdbObject(id, title, genres, type, start_year, end_year, averageRating, numVotes));
         }
         ImdbObject[] items = new ImdbObject[films.size()];
-        return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));
+        if (response.getSuggest()==null) return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")));
+        List<String> suggestionsList = new ArrayList<>();
+        response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> suggestionsList.add(e.getText().toString()));
+        return new ImdbResponse(total, films.toArray(items), mapAggregations(response.getAggregations().get("agg")),
+                suggestionsList.toArray(new String[suggestionsList.size()]));
     }
 
     private ImdbResponse parseResponse(SearchResponse response) {
