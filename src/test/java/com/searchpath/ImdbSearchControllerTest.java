@@ -160,22 +160,52 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByTitleAndType() {
-
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Avengers&type=movie");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertNotNull(imdbResponse);
+        Assertions.assertEquals(27, imdbResponse.getTotal());
+        Assertions.assertNotNull(imdbResponse.getItems());
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getTitle().toLowerCase(Locale.ROOT).contains("avengers") || movie.getOriginal_title().toLowerCase(Locale.ROOT).contains("avengers")));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getType().equals("movie")));
     }
 
     @Test
     public void testSearchByTitleAndGenre(){
-
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Avengers&genres=action");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertNotNull(imdbResponse);
+        Assertions.assertEquals(107, imdbResponse.getTotal());
+        Assertions.assertNotNull(imdbResponse.getItems());
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getTitle().toLowerCase(Locale.ROOT).contains("avengers") || movie.getOriginal_title().toLowerCase(Locale.ROOT).contains("avengers")));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(Arrays.stream(movie.getGenres()).anyMatch("Action"::equals)));
     }
 
     @Test
     public void testSearchByTitleAndYear(){
-
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Avengers&year=1990/2020");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertNotNull(imdbResponse);
+        Assertions.assertEquals(883, imdbResponse.getTotal());
+        Assertions.assertNotNull(imdbResponse.getItems());
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getTitle().toLowerCase(Locale.ROOT).contains("avengers") || movie.getOriginal_title().toLowerCase(Locale.ROOT).contains("avengers")));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(
+                m -> Assertions.assertTrue(Integer.parseInt(m.getStart_year()) >= 1990 && Integer.parseInt(m.getStart_year()) <= 2020 )
+        );
     }
 
     @Test
     public void testSearchByTitleTypeGenreAndYear(){
-
+        HttpRequest<String> request = HttpRequest.GET("/search?query=Avengers&type=movie&genres=action&year=1990/2020");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertNotNull(imdbResponse);
+        Assertions.assertEquals(10, imdbResponse.getTotal());
+        Assertions.assertNotNull(imdbResponse.getItems());
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getTitle().toLowerCase(Locale.ROOT).contains("avengers") || movie.getOriginal_title().toLowerCase(Locale.ROOT).contains("avengers")));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(movie.getType().equals("movie")));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(Arrays.stream(movie.getGenres()).anyMatch("Action"::equals)));
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(
+                m -> Assertions.assertTrue(Integer.parseInt(m.getStart_year()) >= 1990 && Integer.parseInt(m.getStart_year()) <= 2020 )
+        );
     }
 
 }
