@@ -4,7 +4,6 @@ import com.searchpath.ClientFactory;
 import com.searchpath.entities.ImdbObject;
 import com.searchpath.entities.ImdbResponse;
 import com.searchpath.entities.Message;
-import org.apache.lucene.search.spell.SuggestMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -22,13 +21,9 @@ import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBu
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
-import org.elasticsearch.search.suggest.phrase.DirectCandidateGenerator;
 import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
-import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
-import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -143,7 +138,6 @@ public class ElasticSearchingModule implements SearchingModule {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
             //Prints suggestions. Just for testing
             if (response.getSuggest()!=null)
-              //  response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
                 response.getSuggest().getSuggestion("suggestions").getEntries().forEach(entry -> entry.forEach( e -> System.out.println(e.getText())));
 
             return parseResponseWithAggregations(response);

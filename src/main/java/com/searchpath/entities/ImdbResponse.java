@@ -12,15 +12,6 @@ public class ImdbResponse {
     private Map<String,Map<String,Long>> aggregations;
     private String[] suggestions;
 
-    /*@JsonCreator
-    public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items,
-                        @JsonProperty("aggregations") Map<String,Map<String,Long>> aggregations){
-        this.total = total;
-        this.items = items;
-
-        this.aggregations = aggregations;
-    }*/
-
     @JsonCreator
     public ImdbResponse(@JsonProperty("total") long total, @JsonProperty("items") ImdbObject[] items,
                         @JsonProperty("aggregations") Map<String,Map<String,Long>> aggregations,

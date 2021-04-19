@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.Map;
 
 @MicronautTest
