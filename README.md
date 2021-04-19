@@ -101,6 +101,7 @@ Queries will return a JSON response with the following fields:
     - `types`: total hits for each type of media present in the results
     - `genres`: total hits for each genre present in the results
     - `year`: total hits for each decade in the results
+- `suggestions`: list of suggested phrases when the query has mispelled words
 
 ### Additional search: look for a certain title
 You can obtain information about a certain title if you know its id. For doing that, use the base URL http://localhost:8080/titles, and include the id of the title you're looking for as a path parameter, in the way http://localhost:8080/titles/:id. If no title with the given id is found, the response will be empty. Otherwise, the returned JSON will contain the following fields:

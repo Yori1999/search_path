@@ -12,10 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.MainResponse;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -25,11 +22,13 @@ import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBu
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.phrase.DirectCandidateGenerator;
 import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
 import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
+import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -131,11 +130,12 @@ public class ElasticSearchingModule implements SearchingModule {
 
         //For suggesting possible related terms whenever the search is made
         if (query!=null){
+             MatchQueryBuilder collateQuery = QueryBuilders.matchQuery("primaryTitle", "{{suggestion}}");
              searchSourceBuilder.suggest(new SuggestBuilder()
                      .addSuggestion("suggestions", SuggestBuilders.phraseSuggestion("primaryTitle")
                              .text(query).addCandidateGenerator(
-                                     new DirectCandidateGeneratorBuilder("primaryTitle").suggestMode("popular"))
-                             .size(10)));
+                                     new DirectCandidateGeneratorBuilder("primaryTitle").suggestMode("popular").minDocFreq(1)).collateQuery(collateQuery.toString()).size(5).maxErrors(2)
+                     )).size(10);
         }
 
         searchRequest.source(searchSourceBuilder);
@@ -143,7 +143,9 @@ public class ElasticSearchingModule implements SearchingModule {
             SearchResponse response = clientFactory.getClient().search(searchRequest, RequestOptions.DEFAULT);
             //Prints suggestions. Just for testing
             if (response.getSuggest()!=null)
-                response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
+              //  response.getSuggest().getSuggestion("suggestions").getEntries().get(0).forEach( e -> System.out.println(e.getText()));
+                response.getSuggest().getSuggestion("suggestions").getEntries().forEach(entry -> entry.forEach( e -> System.out.println(e.getText())));
+
             return parseResponseWithAggregations(response);
         } catch (IOException e) {
             e.printStackTrace();

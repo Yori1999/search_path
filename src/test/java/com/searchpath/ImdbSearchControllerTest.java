@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 
 @MicronautTest
 public class ImdbSearchControllerTest {
@@ -73,7 +74,29 @@ public class ImdbSearchControllerTest {
 
     @Test
     public void testSearchByGenre(){
+        HttpRequest<String> request = HttpRequest.GET("/search");
+        long totalFilmNoir = client.toBlocking().retrieve(request, ImdbResponse.class).getAggregations().get("genres").get("film-noir");
+        //With query parameter indicating a certain genre
+        //With only one genre
+        request = HttpRequest.GET("/search?genres=film-noir");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() == totalFilmNoir);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( movie -> Assertions.assertTrue(Arrays.stream(movie.getGenres()).anyMatch("Film-Noir"::equals)));
 
+        //With several types
+        //Tune a lil bit so that results are more manageable
+
+        request = HttpRequest.GET("/search?type=videogame&genres=comedy,sci-fi");
+        imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(videogame -> Assertions.assertTrue(
+                Arrays.stream(videogame.getGenres()).anyMatch("Comedy"::equals) ||
+                         Arrays.stream(videogame.getGenres()).anyMatch("Sci-Fi"::equals) )
+        );
     }
 
     @Test
