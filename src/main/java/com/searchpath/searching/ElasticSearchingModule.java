@@ -189,7 +189,6 @@ public class ElasticSearchingModule implements SearchingModule {
 
     @Override
     public ImdbResponse processTitleAndTypeQuery(String query) {
-
         if (query == null) query = ""; //Protect the multi match query from receiving a null query
 
         SearchRequest searchRequest = new SearchRequest();
@@ -261,7 +260,8 @@ public class ElasticSearchingModule implements SearchingModule {
             boolean isAdult = Integer.parseInt((String)sourceAsMap.get("isAdult"))==1;
             String runtimeMinutes = (String) sourceAsMap.get("runtimeMinutes");
 
-            return new ImdbObject(id, title, originalTitle, genres, type, start_year, end_year, averageRating, numVotes, runtimeMinutes, isAdult);
+            return new ImdbObject(id, title, originalTitle, genres, type, start_year, end_year, averageRating, numVotes,
+                    runtimeMinutes, isAdult);
         }
         return new ImdbObject();
     }
