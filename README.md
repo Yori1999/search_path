@@ -88,7 +88,7 @@ All parameters we're going to describe in this section are optional. Basically, 
 ### What do I get?
 Queries will return a JSON response with the following fields:
 - `total`: the total number of hits. If it's greater than 10000, then returns 10000
-- `items`: list of retrieved items/entries. If the number of matches is greater than 10, then it'll only return the first 10 results. Each of these results will have the following fields:
+- `items` (*optional*): list of retrieved items/entries. If the number of matches is greater than 10, then it'll only return the first 10 results. However, if no match is found then no item will be returned. Each of the results will have the following fields:
     - `id` (string): the unique identifier of the title. Matches its index identifier
     - `title` (string): the (primary) title
     - `genres` (*optional*) (array of strings): an array containing the different genres to which this title belongs. If the title doesn't have any genre, then this field won't appear
@@ -97,11 +97,11 @@ Queries will return a JSON response with the following fields:
     - `end_year` (*optional*) (string, YYYY format): the year in which this title stopped being broadcasted/ended. Used only in the case of TV Series. If a result doesn't have end year, nothing is shown
     - `average_rating` (double): the average rating this title has
     - `num_votes` (integer): the number of votes this title has received in order to compute the average rating
-- `aggregations`: list of different aggregations
+- `aggregations` (*optional*): list of different aggregations. If no result was retrieved, then no aggregations will be returned
     - `types`: total hits for each type of media present in the results
     - `genres`: total hits for each genre present in the results
     - `year`: total hits for each decade in the results
-- `suggestions`: list of suggested phrases when the query has mispelled words
+- `suggestions` (*optional*): list of suggested phrases when the query has mispelled words
 
 ### Additional search: look for a certain title
 You can obtain information about a certain title if you know its id. For doing that, use the base URL http://localhost:8080/titles, and include the id of the title you're looking for as a path parameter, in the way http://localhost:8080/titles/:id. If no title with the given id is found, the response will be empty. Otherwise, the returned JSON will contain the following fields:
