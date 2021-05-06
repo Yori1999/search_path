@@ -72,6 +72,16 @@ public class ImdbSearchControllerTest {
     }
 
     @Test
+    public void testTypeRepeated(){
+        HttpRequest<String> request = HttpRequest.GET("/search?type=tvmovie,short,tvmovie");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach( tvSpec -> Assertions.assertTrue("tvMovie".equals(tvSpec.getType()) || "short".equals(tvSpec.getType())));
+    }
+
+    @Test
     public void testSearchByGenre(){
         HttpRequest<String> request = HttpRequest.GET("/search");
         long totalFilmNoir = client.toBlocking().retrieve(request, ImdbResponse.class).getAggregations().get("genres").get("film-noir");
@@ -99,6 +109,19 @@ public class ImdbSearchControllerTest {
     }
 
     @Test
+    public void testGenreRepeated(){
+        HttpRequest<String> request = HttpRequest.GET("/search?type=videogame&genres=comedy,sci-fi,comedy");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(10, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(videogame -> Assertions.assertTrue(
+                Arrays.stream(videogame.getGenres()).anyMatch("Comedy"::equals) ||
+                        Arrays.stream(videogame.getGenres()).anyMatch("Sci-Fi"::equals) )
+        );
+    }
+
+    @Test
     public void testSearchByYear(){
         //With query parameter indicating a certain range of years
         //With only one range
@@ -114,6 +137,18 @@ public class ImdbSearchControllerTest {
         //With several ranges
         request = HttpRequest.GET("/search?year=1870/1878,1880/1885");
         imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
+        Assertions.assertTrue(imdbResponse.getTotal() > 0);
+        Assertions.assertTrue(imdbResponse.getItems() != null);
+        Assertions.assertEquals(6, imdbResponse.getItems().length); //It'll only return the first 10 results by default
+        Arrays.asList(imdbResponse.getItems()).stream().forEach(
+                m -> Assertions.assertTrue(Integer.parseInt(m.getStart_year()) >= 1870 && Integer.parseInt(m.getStart_year()) <= 1885 )
+        );
+    }
+
+    @Test
+    public void testYearRepeated(){
+        HttpRequest<String> request = HttpRequest.GET("/search?year=1870/1878,1880/1885,1880/1885");
+        ImdbResponse imdbResponse = client.toBlocking().retrieve(request, ImdbResponse.class);
         Assertions.assertTrue(imdbResponse.getTotal() > 0);
         Assertions.assertTrue(imdbResponse.getItems() != null);
         Assertions.assertEquals(6, imdbResponse.getItems().length); //It'll only return the first 10 results by default
